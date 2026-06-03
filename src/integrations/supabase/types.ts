@@ -202,9 +202,73 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      directory_profiles: {
+        Row: {
+          assigned_area: string | null
+          full_name: string | null
+          user_id: string | null
+          username: string | null
+        }
+        Insert: {
+          assigned_area?: string | null
+          full_name?: string | null
+          user_id?: string | null
+          username?: string | null
+        }
+        Update: {
+          assigned_area?: string | null
+          full_name?: string | null
+          user_id?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
+      directory_user_roles: {
+        Row: {
+          role: Database["public"]["Enums"]["app_role"] | null
+          user_id: string | null
+        }
+        Insert: {
+          role?: Database["public"]["Enums"]["app_role"] | null
+          user_id?: string | null
+        }
+        Update: {
+          role?: Database["public"]["Enums"]["app_role"] | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      signature_public_keys: {
+        Row: {
+          is_active: boolean | null
+          public_key: string | null
+          user_id: string | null
+        }
+        Insert: {
+          is_active?: boolean | null
+          public_key?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          is_active?: boolean | null
+          public_key?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      create_workflow_notification: {
+        Args: {
+          p_message: string
+          p_title: string
+          p_type: string
+          p_user_id: string
+          p_voucher_id?: string
+          p_voucher_type?: string
+        }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
