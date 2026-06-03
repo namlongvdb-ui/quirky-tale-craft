@@ -202,60 +202,7 @@ export type Database = {
       }
     }
     Views: {
-      directory_profiles: {
-        Row: {
-          assigned_area: string | null
-          full_name: string | null
-          user_id: string | null
-          username: string | null
-        }
-        Insert: {
-          assigned_area?: string | null
-          full_name?: string | null
-          user_id?: string | null
-          username?: string | null
-        }
-        Update: {
-          assigned_area?: string | null
-          full_name?: string | null
-          user_id?: string | null
-          username?: string | null
-        }
-        Relationships: []
-      }
-      directory_user_roles: {
-        Row: {
-          role: Database["public"]["Enums"]["app_role"] | null
-          user_id: string | null
-        }
-        Insert: {
-          role?: Database["public"]["Enums"]["app_role"] | null
-          user_id?: string | null
-        }
-        Update: {
-          role?: Database["public"]["Enums"]["app_role"] | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      signature_public_keys: {
-        Row: {
-          is_active: boolean | null
-          public_key: string | null
-          user_id: string | null
-        }
-        Insert: {
-          is_active?: boolean | null
-          public_key?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          is_active?: boolean | null
-          public_key?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       create_workflow_notification: {
@@ -268,6 +215,30 @@ export type Database = {
           p_voucher_type?: string
         }
         Returns: string
+      }
+      get_directory_profiles: {
+        Args: never
+        Returns: {
+          assigned_area: string
+          full_name: string
+          user_id: string
+          username: string
+        }[]
+      }
+      get_directory_user_roles: {
+        Args: never
+        Returns: {
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }[]
+      }
+      get_signature_public_keys: {
+        Args: never
+        Returns: {
+          is_active: boolean
+          public_key: string
+          user_id: string
+        }[]
       }
       has_role: {
         Args: {
