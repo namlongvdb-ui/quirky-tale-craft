@@ -91,15 +91,12 @@ export function PendingVouchers() {
       filteredVouchers.push({ ...v, voucher_data: v.voucher_data as any, signing_step: step });
     }
 
-    // Get creator names
+    // Get creator names via directory RPC
     const creatorIds = [...new Set(filteredVouchers.map(v => v.created_by))];
     if (creatorIds.length > 0) {
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('user_id, full_name')
-        .in('user_id', creatorIds);
-
-      const profileMap = new Map(profiles?.map(p => [p.user_id, p.full_name]) || []);
+      const { fetchDirectoryProfiles } = await import('@/lib/directory');
+      const profiles = await fetchDirectoryProfiles();
+      const profileMap = new Map(profiles.map(p => [p.user_id, p.full_name]));
       filteredVouchers.forEach(v => {
         v.creator_name = profileMap.get(v.created_by) || 'N/A';
       });
