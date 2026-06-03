@@ -205,6 +205,41 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_workflow_notification: {
+        Args: {
+          p_message: string
+          p_title: string
+          p_type: string
+          p_user_id: string
+          p_voucher_id?: string
+          p_voucher_type?: string
+        }
+        Returns: string
+      }
+      get_directory_profiles: {
+        Args: never
+        Returns: {
+          assigned_area: string
+          full_name: string
+          user_id: string
+          username: string
+        }[]
+      }
+      get_directory_user_roles: {
+        Args: never
+        Returns: {
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }[]
+      }
+      get_signature_public_keys: {
+        Args: never
+        Returns: {
+          is_active: boolean
+          public_key: string
+          user_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

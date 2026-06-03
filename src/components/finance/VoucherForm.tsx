@@ -87,15 +87,15 @@ export function VoucherForm({ type, onSaved, refreshKey }: VoucherFormProps) {
       return;
     }
 
-    const signerIds = sigs.map(s => s.signer_id);
-    const [profilesRes, rolesRes] = await Promise.all([
-      supabase.from('profiles').select('user_id, full_name').in('user_id', signerIds),
-      supabase.from('user_roles').select('user_id, role').in('user_id', signerIds),
+    const { fetchDirectoryProfiles, fetchDirectoryUserRoles } = await import('@/lib/directory');
+    const [profiles, roles] = await Promise.all([
+      fetchDirectoryProfiles(),
+      fetchDirectoryUserRoles(),
     ]);
 
     setPrintSignatures(sigs.map(s => {
-      const profile = profilesRes.data?.find(p => p.user_id === s.signer_id);
-      const role = rolesRes.data?.find(r => r.user_id === s.signer_id);
+      const profile = profiles.find(p => p.user_id === s.signer_id);
+      const role = roles.find(r => r.user_id === s.signer_id);
       return {
         signer_name: profile?.full_name || 'Unknown',
         role: role?.role || '',

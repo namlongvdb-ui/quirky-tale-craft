@@ -53,16 +53,16 @@ export function VoucherSignatureStatus({ transaction, voucherType }: VoucherSign
       .eq('voucher_type', voucherType);
 
     if (sigs && sigs.length > 0) {
-      // Get signer profiles and roles
       const signerIds = sigs.map(s => s.signer_id);
-      const [profilesRes, rolesRes] = await Promise.all([
-        supabase.from('profiles').select('user_id, full_name').in('user_id', signerIds),
-        supabase.from('user_roles').select('user_id, role').in('user_id', signerIds),
+      const { fetchDirectoryProfiles, fetchDirectoryUserRoles } = await import('@/lib/directory');
+      const [profiles, roles] = await Promise.all([
+        fetchDirectoryProfiles(),
+        fetchDirectoryUserRoles(),
       ]);
 
       const infos: SignatureInfo[] = sigs.map(s => {
-        const profile = profilesRes.data?.find(p => p.user_id === s.signer_id);
-        const role = rolesRes.data?.find(r => r.user_id === s.signer_id);
+        const profile = profiles.find(p => p.user_id === s.signer_id);
+        const role = roles.find(r => r.user_id === s.signer_id);
         return {
           signer_id: s.signer_id,
           signer_name: profile?.full_name || 'Unknown',
@@ -210,21 +210,15 @@ export function SignVoucherButton({ transaction, voucherType, onSigned }: Vouche
       const results: string[] = [];
       let allValid = true;
 
+      const { fetchDirectoryProfiles, fetchSignaturePublicKeys } = await import('@/lib/directory');
+      const [allKeys, allProfiles] = await Promise.all([
+        fetchSignaturePublicKeys(true),
+        fetchDirectoryProfiles(true),
+      ]);
+
       for (const sig of sigs) {
-        // Get public key
-        const { data: sigKey } = await supabase
-          .from('digital_signatures')
-          .select('public_key')
-          .eq('user_id', sig.signer_id)
-          .eq('is_active', true)
-          .single();
-
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('full_name')
-          .eq('user_id', sig.signer_id)
-          .single();
-
+        const sigKey = allKeys.find(k => k.user_id === sig.signer_id && k.is_active);
+        const profile = allProfiles.find(p => p.user_id === sig.signer_id);
         const name = profile?.full_name || sig.signer_id;
 
         if (!sigKey) {

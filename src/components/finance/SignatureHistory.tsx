@@ -45,17 +45,18 @@ export function SignatureHistory() {
     const fetchHistory = async () => {
       setLoading(true);
 
-      const [sigsRes, profilesRes, rolesRes] = await Promise.all([
+      const { fetchDirectoryProfiles, fetchDirectoryUserRoles } = await import('@/lib/directory');
+      const [sigsRes, profiles, roles] = await Promise.all([
         supabase.from('voucher_signatures').select('*').order('signed_at', { ascending: false }),
-        supabase.from('profiles').select('user_id, full_name'),
-        supabase.from('user_roles').select('user_id, role'),
+        fetchDirectoryProfiles(true),
+        fetchDirectoryUserRoles(true),
       ]);
 
       const nameMap = new Map<string, string>();
-      profilesRes.data?.forEach(p => nameMap.set(p.user_id, p.full_name));
+      profiles.forEach(p => nameMap.set(p.user_id, p.full_name));
 
       const roleMap = new Map<string, string>();
-      rolesRes.data?.forEach(r => {
+      roles.forEach(r => {
         if (!roleMap.has(r.user_id) || r.role === 'lanh_dao' || r.role === 'ke_toan') {
           roleMap.set(r.user_id, r.role);
         }
