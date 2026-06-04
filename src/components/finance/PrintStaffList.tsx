@@ -95,7 +95,7 @@ export function PrintStaffList() {
               return sum + calculateUnionFee(lbh, settings.baseSalary);
             }, 0);
             return (
-              <tbody key={dept}>
+              <Fragment key={dept}>
                 <tr>
                   <td colSpan={10} style={{ ...cellStyle, fontWeight: 'bold', backgroundColor: '#e8e8e8', fontSize: '11px' }}>
                     {dept}
@@ -129,7 +129,7 @@ export function PrintStaffList() {
                   </td>
                   <td style={{ ...rightCell, fontWeight: 'bold' }}>{fmt(Math.round(deptFee))}</td>
                 </tr>
-              </tbody>
+              </Fragment>
             );
           })}
           <tr>
@@ -229,7 +229,7 @@ export function PrintMonthlyFee({ month, year }: PrintMonthlyFeeProps) {
               return sum + calculateUnionFee(lbh, settings.baseSalary);
             }, 0);
             return (
-              <tbody key={dept}>
+              <Fragment key={dept}>
                 <tr>
                   <td colSpan={9} style={{ ...cellStyle, fontWeight: 'bold', backgroundColor: '#e8e8e8', fontSize: '11px' }}>
                     {dept}
@@ -263,7 +263,7 @@ export function PrintMonthlyFee({ month, year }: PrintMonthlyFeeProps) {
                   <td style={{ ...rightCell, fontWeight: 'bold' }}>{fmt(Math.round(deptFee))}</td>
                   <td style={cellStyle}></td>
                 </tr>
-              </tbody>
+              </Fragment>
             );
           })}
           <tr>
