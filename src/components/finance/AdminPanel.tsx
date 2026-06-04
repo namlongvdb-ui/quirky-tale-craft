@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
-import { generateRSAKeyPair, storePrivateKey, encryptPrivateKey } from '@/lib/crypto-utils';
+import { generateRSAKeyPair, encryptPrivateKey } from '@/lib/crypto-utils';
 import { UserPlus, Key, Shield, Users, RotateCcw, Ban, Trash2, UserCheck, RefreshCw, MapPin } from 'lucide-react';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -234,8 +234,7 @@ export function AdminPanel() {
 
       if (error) throw error;
 
-      // Also store locally for convenience on this device
-      storePrivateKey(signatureTarget.user_id, privateKey);
+      // Private key is never stored locally — only the password-encrypted copy lives on the server.
 
       toast({
         title: 'Đã tạo chữ ký số',
