@@ -136,6 +136,23 @@ export function reopenYear(year: number) {
   setActiveYear(year);
 }
 
+/** Admin only: unlock a previously closed year so chứng từ can be edited again */
+export function unlockYear(year: number): { success: boolean; message: string } {
+  const yearDataList = getYearDataList();
+  const idx = yearDataList.findIndex(y => y.year === year);
+  if (idx < 0) {
+    return { success: false, message: `Không tìm thấy dữ liệu năm ${year}.` };
+  }
+  if (!yearDataList[idx].isClosed) {
+    return { success: false, message: `Năm ${year} hiện đang mở.` };
+  }
+  yearDataList[idx].isClosed = false;
+  yearDataList[idx].closedAt = undefined;
+  saveYearDataList(yearDataList);
+  setActiveYear(year);
+  return { success: true, message: `Đã mở lại sổ năm ${year}. Bạn có thể chỉnh sửa chứng từ.` };
+}
+
 /** Check if a year is closed (read-only) */
 export function isYearClosed(year: number): boolean {
   const yd = getYearData(year);
