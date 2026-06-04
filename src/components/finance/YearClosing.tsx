@@ -267,6 +267,29 @@ export function YearClosing({ onYearChanged }: YearClosingProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Unlock Year Dialog (Admin only) */}
+      <AlertDialog open={unlockTarget != null} onOpenChange={(o) => !o && setUnlockTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Mở lại sổ năm {unlockTarget}</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>Bạn (Admin) đang yêu cầu mở lại sổ năm <strong>{unlockTarget}</strong>.</p>
+              <ul className="list-disc pl-5 space-y-1 text-sm">
+                <li>Năm này sẽ chuyển về trạng thái "Đang mở" và có thể thêm/sửa/xóa chứng từ.</li>
+                <li>Số dư đầu kỳ các năm sau KHÔNG tự động tính lại — nếu chỉnh số liệu, hãy khóa sổ lại để kết chuyển chính xác.</li>
+                <li>Thao tác này chỉ dành cho mục đích chỉnh sửa sai sót.</li>
+              </ul>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogAction onClick={handleUnlockYear} className="bg-amber-600 hover:bg-amber-700">
+              Xác nhận mở lại
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
