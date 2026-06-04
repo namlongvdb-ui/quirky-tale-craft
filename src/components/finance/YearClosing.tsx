@@ -8,10 +8,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { 
   getActiveYear, setActiveYear, getAvailableYears, getYearDataList,
   calculateClosingBalance, closeYear, isYearClosed, getOpeningBalanceForYear,
-  getTransactionsForYear
+  getTransactionsForYear, unlockYear
 } from '@/lib/finance-store';
-import { Lock, Unlock, ArrowRightLeft, Calendar, BookOpenCheck } from 'lucide-react';
+import { Lock, Unlock, ArrowRightLeft, Calendar, BookOpenCheck, KeyRound } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 
 function fmt(n: number) { return n.toLocaleString('vi-VN'); }
 
@@ -20,8 +21,10 @@ interface YearClosingProps {
 }
 
 export function YearClosing({ onYearChanged }: YearClosingProps) {
+  const { isAdmin } = useAuth();
   const [refreshKey, setRefreshKey] = useState(0);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [unlockTarget, setUnlockTarget] = useState<number | null>(null);
 
   const activeYear = useMemo(() => getActiveYear(), [refreshKey]);
   const availableYears = useMemo(() => getAvailableYears(), [refreshKey]);
@@ -55,6 +58,19 @@ export function YearClosing({ onYearChanged }: YearClosingProps) {
     setRefreshKey(k => k + 1);
     onYearChanged?.();
     toast.info(`Đã chuyển sang năm ${year}`);
+  };
+
+  const handleUnlockYear = () => {
+    if (unlockTarget == null) return;
+    const result = unlockYear(unlockTarget);
+    if (result.success) {
+      toast.success(result.message);
+      setRefreshKey(k => k + 1);
+      onYearChanged?.();
+    } else {
+      toast.error(result.message);
+    }
+    setUnlockTarget(null);
   };
 
   return (
@@ -140,10 +156,20 @@ export function YearClosing({ onYearChanged }: YearClosingProps) {
           )}
 
           {isClosed && (
-            <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg text-center">
+            <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg text-center space-y-3">
               <p className="text-amber-800 font-medium">
                 ⚠️ Năm {activeYear} đã khóa sổ. Bạn chỉ có thể xem, không thể thêm/sửa/xóa chứng từ.
               </p>
+              {isAdmin && (
+                <Button
+                  variant="outline"
+                  className="gap-2 border-amber-600 text-amber-700 hover:bg-amber-100"
+                  onClick={() => setUnlockTarget(activeYear)}
+                >
+                  <KeyRound className="h-4 w-4" />
+                  Mở lại sổ năm {activeYear} (Admin)
+                </Button>
+              )}
             </div>
           )}
         </CardContent>
@@ -188,14 +214,27 @@ export function YearClosing({ onYearChanged }: YearClosingProps) {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-center">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleSwitchYear(String(yd.year))}
-                        disabled={yd.year === activeYear}
-                      >
-                        {yd.year === activeYear ? 'Đang xem' : 'Xem'}
-                      </Button>
+                      <div className="flex items-center justify-center gap-2 flex-wrap">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleSwitchYear(String(yd.year))}
+                          disabled={yd.year === activeYear}
+                        >
+                          {yd.year === activeYear ? 'Đang xem' : 'Xem'}
+                        </Button>
+                        {isAdmin && yd.isClosed && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-amber-600 text-amber-700 hover:bg-amber-50 gap-1"
+                            onClick={() => setUnlockTarget(yd.year)}
+                          >
+                            <KeyRound className="h-3.5 w-3.5" />
+                            Mở lại
+                          </Button>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 );
@@ -224,6 +263,29 @@ export function YearClosing({ onYearChanged }: YearClosingProps) {
             <AlertDialogCancel>Hủy</AlertDialogCancel>
             <AlertDialogAction onClick={handleCloseYear} className="bg-amber-600 hover:bg-amber-700">
               Xác nhận khóa sổ
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Unlock Year Dialog (Admin only) */}
+      <AlertDialog open={unlockTarget != null} onOpenChange={(o) => !o && setUnlockTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Mở lại sổ năm {unlockTarget}</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>Bạn (Admin) đang yêu cầu mở lại sổ năm <strong>{unlockTarget}</strong>.</p>
+              <ul className="list-disc pl-5 space-y-1 text-sm">
+                <li>Năm này sẽ chuyển về trạng thái "Đang mở" và có thể thêm/sửa/xóa chứng từ.</li>
+                <li>Số dư đầu kỳ các năm sau KHÔNG tự động tính lại — nếu chỉnh số liệu, hãy khóa sổ lại để kết chuyển chính xác.</li>
+                <li>Thao tác này chỉ dành cho mục đích chỉnh sửa sai sót.</li>
+              </ul>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogAction onClick={handleUnlockYear} className="bg-amber-600 hover:bg-amber-700">
+              Xác nhận mở lại
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
