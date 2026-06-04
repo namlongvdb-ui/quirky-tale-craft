@@ -8,10 +8,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { 
   getActiveYear, setActiveYear, getAvailableYears, getYearDataList,
   calculateClosingBalance, closeYear, isYearClosed, getOpeningBalanceForYear,
-  getTransactionsForYear
+  getTransactionsForYear, unlockYear
 } from '@/lib/finance-store';
-import { Lock, Unlock, ArrowRightLeft, Calendar, BookOpenCheck } from 'lucide-react';
+import { Lock, Unlock, ArrowRightLeft, Calendar, BookOpenCheck, KeyRound } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 
 function fmt(n: number) { return n.toLocaleString('vi-VN'); }
 
