@@ -21,8 +21,10 @@ interface YearClosingProps {
 }
 
 export function YearClosing({ onYearChanged }: YearClosingProps) {
+  const { isAdmin } = useAuth();
   const [refreshKey, setRefreshKey] = useState(0);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [unlockTarget, setUnlockTarget] = useState<number | null>(null);
 
   const activeYear = useMemo(() => getActiveYear(), [refreshKey]);
   const availableYears = useMemo(() => getAvailableYears(), [refreshKey]);
