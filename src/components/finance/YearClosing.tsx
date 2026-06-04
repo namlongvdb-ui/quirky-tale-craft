@@ -60,6 +60,19 @@ export function YearClosing({ onYearChanged }: YearClosingProps) {
     toast.info(`Đã chuyển sang năm ${year}`);
   };
 
+  const handleUnlockYear = () => {
+    if (unlockTarget == null) return;
+    const result = unlockYear(unlockTarget);
+    if (result.success) {
+      toast.success(result.message);
+      setRefreshKey(k => k + 1);
+      onYearChanged?.();
+    } else {
+      toast.error(result.message);
+    }
+    setUnlockTarget(null);
+  };
+
   return (
     <div className="space-y-6">
       {/* Year Selector */}
