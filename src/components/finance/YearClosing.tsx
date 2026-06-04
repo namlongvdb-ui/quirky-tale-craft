@@ -156,10 +156,20 @@ export function YearClosing({ onYearChanged }: YearClosingProps) {
           )}
 
           {isClosed && (
-            <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg text-center">
+            <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg text-center space-y-3">
               <p className="text-amber-800 font-medium">
                 ⚠️ Năm {activeYear} đã khóa sổ. Bạn chỉ có thể xem, không thể thêm/sửa/xóa chứng từ.
               </p>
+              {isAdmin && (
+                <Button
+                  variant="outline"
+                  className="gap-2 border-amber-600 text-amber-700 hover:bg-amber-100"
+                  onClick={() => setUnlockTarget(activeYear)}
+                >
+                  <KeyRound className="h-4 w-4" />
+                  Mở lại sổ năm {activeYear} (Admin)
+                </Button>
+              )}
             </div>
           )}
         </CardContent>
