@@ -2,6 +2,10 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
+import { purgeLegacyPrivateKeys } from '@/lib/crypto-utils';
+
+// Remove any legacy plaintext private keys from previous app versions on load.
+purgeLegacyPrivateKeys();
 
 type AppRole = Database['public']['Enums']['app_role'];
 
