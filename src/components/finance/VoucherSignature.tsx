@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { signData, hashData, verifySignature, getPrivateKey, getServerPrivateKey } from '@/lib/crypto-utils';
+import { signData, hashData, verifySignature, getServerPrivateKey } from '@/lib/crypto-utils';
 import { Transaction } from '@/types/finance';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -144,16 +144,12 @@ export function SignVoucherButton({ transaction, voucherType, onSigned }: Vouche
     setSigning(true);
 
     try {
-      // Try local key first, then server key decrypted with password
-      let privateKey = getPrivateKey(user.id);
-      if (!privateKey) {
-        if (!signPassword) {
-          toast.error('Vui lòng nhập mật khẩu ký số');
-          setSigning(false);
-          return;
-        }
-        privateKey = await getServerPrivateKey(user.id, signPassword);
+      if (!signPassword) {
+        toast.error('Vui lòng nhập mật khẩu ký số');
+        setSigning(false);
+        return;
       }
+      const privateKey = await getServerPrivateKey(user.id, signPassword);
       if (!privateKey) {
         toast.error('Không thể giải mã khóa bí mật. Kiểm tra lại mật khẩu ký.');
         setSigning(false);

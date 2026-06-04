@@ -139,15 +139,18 @@ export async function getServerPrivateKey(userId: string, password: string): Pro
   }
 }
 
-// Legacy localStorage functions (kept for backward compatibility)
-export function storePrivateKey(userId: string, privateKey: string): void {
-  localStorage.setItem(`private_key_${userId}`, privateKey);
+// Clear any legacy plaintext private key copies that older versions stored.
+// Plaintext private keys MUST NEVER be persisted to localStorage.
+export function purgeLegacyPrivateKeys(): void {
+  try {
+    const toRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith('private_key_')) toRemove.push(k);
+    }
+    toRemove.forEach(k => localStorage.removeItem(k));
+  } catch {
+    // ignore
+  }
 }
 
-export function getPrivateKey(userId: string): string | null {
-  return localStorage.getItem(`private_key_${userId}`);
-}
-
-export function removePrivateKey(userId: string): void {
-  localStorage.removeItem(`private_key_${userId}`);
-}
