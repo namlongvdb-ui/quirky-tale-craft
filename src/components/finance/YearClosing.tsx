@@ -214,14 +214,27 @@ export function YearClosing({ onYearChanged }: YearClosingProps) {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-center">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleSwitchYear(String(yd.year))}
-                        disabled={yd.year === activeYear}
-                      >
-                        {yd.year === activeYear ? 'Đang xem' : 'Xem'}
-                      </Button>
+                      <div className="flex items-center justify-center gap-2 flex-wrap">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleSwitchYear(String(yd.year))}
+                          disabled={yd.year === activeYear}
+                        >
+                          {yd.year === activeYear ? 'Đang xem' : 'Xem'}
+                        </Button>
+                        {isAdmin && yd.isClosed && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-amber-600 text-amber-700 hover:bg-amber-50 gap-1"
+                            onClick={() => setUnlockTarget(yd.year)}
+                          >
+                            <KeyRound className="h-3.5 w-3.5" />
+                            Mở lại
+                          </Button>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 );
