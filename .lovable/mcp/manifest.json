@@ -1,0 +1,147 @@
+{
+  "version": 1,
+  "sdk_version": "0.26.1",
+  "path": "/functions/v1/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://vyonnsefdfsmnwbgctcb.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "quality-life-tools",
+      "version": "0.1.0",
+      "title": "Quality Life Tools"
+    },
+    "tools": [
+      {
+        "name": "get_my_profile",
+        "title": "Lấy thông tin người dùng",
+        "description": "Get the signed-in user's profile (full name, username, assigned area) and their roles.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_pending_vouchers",
+        "title": "Danh sách chứng từ",
+        "description": "List vouchers visible to the signed-in user, optionally filtered by status (pending, signed, approved) or voucher type.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "status": {
+              "description": "Filter by status, e.g. pending or signed.",
+              "type": "string"
+            },
+            "voucher_type": {
+              "description": "Filter by voucher type, e.g. phieu-thu, phieu-chi.",
+              "type": "string"
+            },
+            "limit": {
+              "description": "Max rows to return (default 20, max 100).",
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_notifications",
+        "title": "Danh sách thông báo",
+        "description": "List the signed-in user's notifications, newest first. Optionally only unread ones.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "unread_only": {
+              "description": "Return only unread notifications.",
+              "type": "boolean"
+            },
+            "limit": {
+              "description": "Max rows to return (default 20, max 100).",
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "mark_notification_read",
+        "title": "Đánh dấu đã đọc thông báo",
+        "description": "Mark one of the signed-in user's notifications as read.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "notification_id": {
+              "type": "string",
+              "description": "The notification id to mark as read."
+            }
+          },
+          "required": [
+            "notification_id"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_voucher_signatures",
+        "title": "Lịch sử ký duyệt",
+        "description": "List digital signature records for vouchers visible to the signed-in user, newest first.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "voucher_id": {
+              "description": "Only signatures for this voucher id.",
+              "type": "string"
+            },
+            "limit": {
+              "description": "Max rows to return (default 20, max 100).",
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          }
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
