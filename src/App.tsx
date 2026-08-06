@@ -7,8 +7,11 @@ import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import Index from "./pages/Index.tsx";
 import Login from "./pages/Login.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import OAuthConsent from "./pages/OAuthConsent.tsx";
 
 const queryClient = new QueryClient();
+
+const CONSENT_PATH = "/.lovable/oauth/consent";
 
 function AppRoutes() {
   const { user, loading } = useAuth();
@@ -18,6 +21,14 @@ function AppRoutes() {
       <div className="flex min-h-screen items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
+    );
+  }
+
+  if (window.location.pathname === CONSENT_PATH) {
+    return (
+      <Routes>
+        <Route path={CONSENT_PATH} element={<OAuthConsent />} />
+      </Routes>
     );
   }
 
@@ -33,6 +44,7 @@ function AppRoutes() {
     </Routes>
   );
 }
+
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
