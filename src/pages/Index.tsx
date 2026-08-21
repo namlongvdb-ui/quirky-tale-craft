@@ -93,8 +93,10 @@ const Index = () => {
         {currentView === 'cho-ky' && <PendingVouchers />}
         {currentView === 'da-duyet' && <ApprovedVouchers />}
         {currentView === 'quan-tri' && isAdmin && <AdminPanel />}
-      </main>
+        </main>
+      </div>
     </div>
+
   );
 };
 
