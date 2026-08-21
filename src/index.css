@@ -102,8 +102,28 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    font-family: "Be Vietnam Pro", system-ui, sans-serif;
+  }
+
+  h1,
+  h2,
+  h3,
+  .font-display {
+    font-family: "Playfair Display", "Be Vietnam Pro", serif;
   }
 }
+
+@layer components {
+  .surface-card {
+    @apply rounded-2xl border border-border bg-card;
+    box-shadow: var(--shadow-card);
+  }
+
+  .label-caps {
+    @apply text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground;
+  }
+}
+
 
 /* Print styles: only show .print-voucher content when printing */
 @media print {
