@@ -17,6 +17,8 @@ import { PendingVouchers } from '@/components/finance/PendingVouchers';
 import { ApprovedVouchers } from '@/components/finance/ApprovedVouchers';
 import { NotificationBell } from '@/components/finance/NotificationBell';
 import { useAuth } from '@/hooks/useAuth';
+import { CalendarDays, ChevronRight, Home } from 'lucide-react';
+
 
 const viewTitles: Record<ViewType, string> = {
   dashboard: 'Tổng quan',
