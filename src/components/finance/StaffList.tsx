@@ -450,11 +450,12 @@ export function StaffList() {
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 no-print">
-        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Tổng đoàn viên</p><p className="text-2xl font-bold text-primary">{list.length}</p></CardContent></Card>
-        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Lương cơ sở</p><p className="text-lg font-semibold text-foreground">{fmt(settings.baseSalary)} ₫</p></CardContent></Card>
-        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Tổng đoàn phí CĐ/tháng</p><p className="text-lg font-bold text-primary">{fmt(Math.round(totalUnionFee))} ₫</p></CardContent></Card>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 no-print">
+        <Card className="border-0 rounded-2xl shadow-sm ring-1 ring-border"><CardContent className="p-6 space-y-3"><p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Tổng đoàn viên</p><p className="font-serif text-3xl font-bold text-foreground">{list.length}</p></CardContent></Card>
+        <Card className="border-0 rounded-2xl shadow-sm ring-1 ring-border"><CardContent className="p-6 space-y-3"><p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Lương cơ sở</p><p className="font-serif text-3xl font-bold text-foreground">{fmt(settings.baseSalary)} <span className="text-sm font-medium text-muted-foreground underline">đ</span></p></CardContent></Card>
+        <Card className="border-0 rounded-2xl shadow-sm ring-1 ring-border"><CardContent className="p-6 space-y-3"><p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Tổng đoàn phí CĐ/tháng</p><p className="font-serif text-3xl font-bold text-primary">{fmt(Math.round(totalUnionFee))} <span className="text-sm font-medium text-muted-foreground underline">đ</span></p></CardContent></Card>
       </div>
+
 
       {/* Filter tabs by union group */}
       <div className="no-print">
