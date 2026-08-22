@@ -259,16 +259,18 @@ export function ChangePasswordForm() {
                 required
               />
             </div>
-            <p className="text-xs text-muted-foreground">
-              Mật khẩu ký số dùng để bảo vệ khóa bí mật của bạn. Nếu quên mật khẩu ký số, liên hệ quản trị viên để được cấp lại.
+            <p className="rounded-lg bg-emerald-50 px-4 py-3 text-xs italic text-emerald-700">
+              * Lưu ý: Mật khẩu ký số dùng để bảo vệ khóa bí mật của bạn. Nếu quên, vui lòng liên hệ quản trị viên để được cấp lại khóa mới.
             </p>
-            <Button type="submit" disabled={sigLoading} className="w-full">
+            <Button type="submit" disabled={sigLoading} className="h-12 w-full bg-emerald-600 text-xs font-semibold uppercase tracking-[0.16em] text-primary-foreground hover:bg-emerald-700">
               {sigLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <KeyRound className="h-4 w-4 mr-2" />}
-              Đổi mật khẩu ký số
+              Xác nhận thay đổi
             </Button>
           </form>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }
+
