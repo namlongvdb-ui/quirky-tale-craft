@@ -133,16 +133,34 @@ export function ChangePasswordForm() {
   };
 
   return (
-    <div className="space-y-6 max-w-md">
+    <div className="space-y-8">
+      <div className="space-y-2 border-b border-border pb-6">
+        <h1 className="font-serif text-3xl md:text-4xl font-bold uppercase tracking-tight text-foreground">
+          Bảo mật tài khoản
+        </h1>
+        <p className="flex items-center gap-2 text-sm text-muted-foreground">
+          <KeyRound className="h-4 w-4 text-primary" />
+          Quản lý mật khẩu đăng nhập và mật khẩu chữ ký số cá nhân
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
       {/* Login password change */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+      <Card className="border-0 rounded-2xl shadow-sm ring-1 ring-border overflow-hidden">
+        <CardHeader className="border-b border-border bg-muted/30 flex-row items-center gap-4 space-y-0 py-6">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <Lock className="h-5 w-5" />
-            Đổi mật khẩu đăng nhập
-          </CardTitle>
-          <CardDescription>Thay đổi mật khẩu đăng nhập của bạn</CardDescription>
+          </span>
+          <div className="space-y-1">
+            <CardTitle className="font-serif text-lg font-bold uppercase tracking-wide">
+              Mật khẩu đăng nhập
+            </CardTitle>
+            <CardDescription className="text-[10px] font-semibold uppercase tracking-[0.16em]">
+              Thay đổi mật mã truy cập hệ thống
+            </CardDescription>
+          </div>
         </CardHeader>
+
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
