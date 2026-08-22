@@ -200,23 +200,30 @@ export function ChangePasswordForm() {
                 required
               />
             </div>
-            <Button type="submit" disabled={loading} className="w-full">
+            <Button type="submit" disabled={loading} className="h-12 w-full text-xs font-semibold uppercase tracking-[0.16em]">
               {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Lock className="h-4 w-4 mr-2" />}
-              Đổi mật khẩu
+              Xác nhận thay đổi
             </Button>
           </form>
         </CardContent>
       </Card>
 
       {/* Signature password change */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+      <Card className="border-0 rounded-2xl shadow-sm ring-1 ring-emerald-200 overflow-hidden">
+        <CardHeader className="border-b border-emerald-100 bg-emerald-50/60 flex-row items-center gap-4 space-y-0 py-6">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
             <KeyRound className="h-5 w-5" />
-            Đổi mật khẩu ký số
-          </CardTitle>
-          <CardDescription>Thay đổi mật khẩu dùng để ký duyệt chứng từ</CardDescription>
+          </span>
+          <div className="space-y-1">
+            <CardTitle className="font-serif text-lg font-bold uppercase tracking-wide">
+              Mật khẩu ký số
+            </CardTitle>
+            <CardDescription className="text-[10px] font-semibold uppercase tracking-[0.16em]">
+              Dùng để ký duyệt chứng từ điện tử
+            </CardDescription>
+          </div>
         </CardHeader>
+
         <CardContent>
           <form onSubmit={handleSignaturePasswordChange} className="space-y-4">
             <div className="space-y-2">
