@@ -135,7 +135,7 @@ export function TransactionList({ type, title, personLabel, onChanged, refreshKe
 
   return (
     <>
-    <div className="max-w-5xl mx-auto mt-8 no-print">
+    <div className={cn('max-w-5xl mx-auto mt-8 no-print', containerClassName)}>
       {/* Toggle button */}
       <button
         onClick={() => setIsOpen(o => !o)}
