@@ -43,7 +43,7 @@ function formatDate(dateStr: string) {
 
 export function TransactionList({ type, title, personLabel, onChanged, refreshKey, onSelectForEdit, containerClassName }: TransactionListProps) {
   const [search, setSearch] = useState('');
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
   const [sigRefreshKey, setSigRefreshKey] = useState(0);
   const [approvedVoucherIds, setApprovedVoucherIds] = useState<Set<string>>(new Set());
   const [previewTx, setPreviewTx] = useState<Transaction | null>(null);
