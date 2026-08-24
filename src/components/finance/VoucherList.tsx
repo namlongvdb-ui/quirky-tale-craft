@@ -6,9 +6,10 @@ interface VoucherListProps {
   onChanged?: () => void;
   refreshKey?: number;
   onSelectForEdit?: (tx: Transaction) => void;
+  containerClassName?: string;
 }
 
-export function VoucherList({ type, onChanged, refreshKey, onSelectForEdit }: VoucherListProps) {
+export function VoucherList({ type, onChanged, refreshKey, onSelectForEdit, containerClassName }: VoucherListProps) {
   const title = type === 'thu' ? 'PHIẾU THU' : 'PHIẾU CHI';
   const personLabel = type === 'thu' ? 'Người nộp' : 'Người nhận';
 
@@ -20,6 +21,7 @@ export function VoucherList({ type, onChanged, refreshKey, onSelectForEdit }: Vo
       onChanged={onChanged}
       refreshKey={refreshKey}
       onSelectForEdit={onSelectForEdit}
+      containerClassName={containerClassName}
     />
   );
 }
