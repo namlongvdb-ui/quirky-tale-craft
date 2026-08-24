@@ -29,6 +29,7 @@ interface TransactionListProps {
   onChanged?: () => void;
   refreshKey?: number;
   onSelectForEdit?: (tx: Transaction) => void;
+  containerClassName?: string;
 }
 
 function formatCurrency(n: number) {
@@ -40,7 +41,7 @@ function formatDate(dateStr: string) {
   return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
-export function TransactionList({ type, title, personLabel, onChanged, refreshKey, onSelectForEdit }: TransactionListProps) {
+export function TransactionList({ type, title, personLabel, onChanged, refreshKey, onSelectForEdit, containerClassName }: TransactionListProps) {
   const [search, setSearch] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [sigRefreshKey, setSigRefreshKey] = useState(0);
