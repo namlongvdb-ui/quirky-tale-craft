@@ -243,6 +243,8 @@ export function VoucherForm({ type, onSaved, refreshKey }: VoucherFormProps) {
                             value={form.accountCode}
                             onChange={code => setForm({ ...form, accountCode: code })}
                             placeholder={settings.defaultAccountCode || 'Nhập mã TK...'}
+                            className="border-0 shadow-none focus-visible:ring-0 px-1"
+
                           />
                         </div>
                       </div>
