@@ -36,6 +36,8 @@ export function AccountCodeInput({ value, onChange, placeholder, className }: Ac
         onBlur={() => setTimeout(() => setOpen(false), 200)}
         placeholder={placeholder || 'Nhập mã TK...'}
         className={`h-10 font-mono ${className || ''}`}
+        style={undefined}
+
         title={selectedAccount ? `${selectedAccount.code} - ${selectedAccount.name}` : ''}
       />
       {open && filtered.length > 0 && (

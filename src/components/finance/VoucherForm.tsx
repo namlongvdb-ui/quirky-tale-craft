@@ -182,6 +182,8 @@ export function VoucherForm({ type, onSaved, refreshKey }: VoucherFormProps) {
   };
 
   const isThu = type === 'thu';
+  const TrendIcon = isThu ? TrendingUp : TrendingDown;
+
 
   return (
     <>
