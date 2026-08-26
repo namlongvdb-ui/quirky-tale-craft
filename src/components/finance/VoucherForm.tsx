@@ -326,7 +326,10 @@ export function VoucherForm({ type, onSaved, refreshKey }: VoucherFormProps) {
               </form>
             </CardContent>
           </Card>
+
+          <VoucherAttachments voucherType={type} voucherId={form.voucherNo} />
         </div>
+
 
         {/* RIGHT: recent vouchers */}
         <aside className="xl:sticky xl:top-4">
