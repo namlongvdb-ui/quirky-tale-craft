@@ -15,6 +15,14 @@ function formatCurrency(n: number) {
   return n.toLocaleString('vi-VN');
 }
 
+function normalizeText(value: string) {
+  return (value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
 export function PrintVisitVoucher({ data }: PrintVisitVoucherProps) {
   const settings = getOrgSettings();
   const d = new Date(data.date);
@@ -25,10 +33,12 @@ export function PrintVisitVoucher({ data }: PrintVisitVoucherProps) {
   const groupLeaderName = selectedGroup?.leaderName || settings.unionGroups[0]?.leaderName || '';
 
   // 2. Kiểm tra tổ công đoàn có thuộc địa bàn nào không
-  const currentGroupName = data.unionGroupName || "";
-  const matchedArea = (settings.areaRepresentatives || []).find(area => 
-    area.areaName && currentGroupName.includes(area.areaName)
-  );
+  const currentGroupName = normalizeText(data.unionGroupName || '');
+  const matchedArea = (settings.areaRepresentatives || []).find(area => {
+    const normalizedArea = normalizeText(area.areaName);
+    if (!normalizedArea || !currentGroupName) return false;
+    return currentGroupName.includes(normalizedArea) || normalizedArea.includes(currentGroupName);
+  });
   
   // Nếu thuộc địa bàn → "UV BCH Công đoàn", ngược lại → "Chủ tịch"
   const leftSignatureTitle = matchedArea ? "UV BCH Công đoàn" : "Chủ Tịch";
