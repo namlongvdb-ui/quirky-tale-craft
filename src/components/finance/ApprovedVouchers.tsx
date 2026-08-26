@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/integrations/supabase/client';
+import { pendingVouchersApi, voucherSignaturesApi, profilesApi, rolesApi } from '@/lib/api-client';
 import { useAuth } from '@/hooks/useAuth';
 import { getVoucherLabel } from '@/lib/notification-utils';
 import { toast } from 'sonner';
@@ -48,13 +48,10 @@ export function ApprovedVouchers() {
     if (!user) return;
     setLoading(true);
 
-    const { data } = await supabase
-      .from('pending_vouchers')
-      .select('*')
-      .in('status', ['signed', 'printed'])
-      .order('signed_at', { ascending: false });
+    const { data } = await pendingVouchersApi.getAll();
+    const filtered = (data || []).filter((v: any) => ['signed', 'printed'].includes(v.status));
 
-    setVouchers((data || []).map(v => ({ ...v, voucher_data: v.voucher_data as any })));
+    setVouchers(filtered.map((v: any) => ({ ...v, voucher_data: v.voucher_data as any })));
     setLoading(false);
   }, [user]);
 
@@ -74,23 +71,18 @@ export function ApprovedVouchers() {
   }, [vouchers, dateFrom, dateTo]);
 
   const fetchSignatures = async (voucherId: string, voucherType: string): Promise<SignatureDisplay[]> => {
-    const { data: sigs } = await supabase
-      .from('voucher_signatures')
-      .select('signer_id, signed_at')
-      .eq('voucher_id', voucherId)
-      .eq('voucher_type', voucherType);
+    const { data: sigs } = await voucherSignaturesApi.get(voucherId, voucherType);
 
     if (!sigs || sigs.length === 0) return [];
 
-    const { fetchDirectoryProfiles, fetchDirectoryUserRoles } = await import('@/lib/directory');
-    const [profiles, roles] = await Promise.all([
-      fetchDirectoryProfiles(),
-      fetchDirectoryUserRoles(),
+    const [profilesRes, rolesRes] = await Promise.all([
+      profilesApi.getAll(),
+      rolesApi.getAll(),
     ]);
 
-    return sigs.map(s => {
-      const profile = profiles.find(p => p.user_id === s.signer_id);
-      const role = roles.find(r => r.user_id === s.signer_id);
+    return sigs.map((s: any) => {
+      const profile = profilesRes.data?.find((p: any) => p.user_id === s.signer_id);
+      const role = rolesRes.data?.find((r: any) => r.user_id === s.signer_id);
       return {
         signer_name: profile?.full_name || 'Unknown',
         role: role?.role || '',
@@ -106,9 +98,7 @@ export function ApprovedVouchers() {
 
     setTimeout(() => {
       window.print();
-      supabase.from('pending_vouchers')
-        .update({ status: 'printed', printed_at: new Date().toISOString() })
-        .eq('id', voucher.id)
+      pendingVouchersApi.update(voucher.id, { status: 'printed', printed_at: new Date().toISOString() })
         .then(() => { fetchApproved(); });
     }, 300);
   };
