@@ -170,6 +170,48 @@ export type Database = {
         }
         Relationships: []
       }
+      voucher_attachments: {
+        Row: {
+          created_at: string
+          doc_type: string
+          file_name: string
+          file_path: string
+          file_size: number | null
+          id: string
+          mime_type: string | null
+          updated_at: string
+          uploaded_by: string
+          voucher_id: string
+          voucher_type: string
+        }
+        Insert: {
+          created_at?: string
+          doc_type?: string
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          updated_at?: string
+          uploaded_by: string
+          voucher_id: string
+          voucher_type: string
+        }
+        Update: {
+          created_at?: string
+          doc_type?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          updated_at?: string
+          uploaded_by?: string
+          voucher_id?: string
+          voucher_type?: string
+        }
+        Relationships: []
+      }
       voucher_signatures: {
         Row: {
           data_hash: string
