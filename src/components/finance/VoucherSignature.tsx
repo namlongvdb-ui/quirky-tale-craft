@@ -1,28 +1,31 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { voucherSignaturesApi, profilesApi, rolesApi, digitalSignaturesApi } from '@/lib/api-client';
 import { useAuth } from '@/hooks/useAuth';
-import { signData, hashData, verifySignature, getServerPrivateKey } from '@/lib/crypto-utils';
+import { verifySignature } from '@/lib/crypto-utils';
 import { Transaction } from '@/types/finance';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { toast } from 'sonner';
 import { ShieldCheck, ShieldAlert, PenTool, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
+import { signVoucherWith3StepNotify } from '@/lib/signing-flow';
+import { cn } from '@/lib/utils';
 
 interface SignatureInfo {
   signer_id: string;
   signer_name: string;
   signed_at: string;
-  is_valid: boolean | null; // null = not verified yet
+  is_valid: boolean | null;
   role: string;
 }
 
 interface VoucherSignatureProps {
   transaction: Transaction;
   voucherType: 'thu' | 'chi' | 'tham-hoi' | 'de-nghi';
-  compact?: boolean; // for table row display
+  compact?: boolean;
+  /** Ẩn nút ký trên danh sách (phiếu thu/chi ký ngay khi lập + chờ ký tại màn hình chờ ký) */
+  hideSignAction?: boolean;
 }
 
 function buildVoucherDataString(tx: Transaction): string {
@@ -46,23 +49,18 @@ export function VoucherSignatureStatus({ transaction, voucherType }: VoucherSign
 
   const fetchSignatures = async () => {
     setLoading(true);
-    const { data: sigs } = await supabase
-      .from('voucher_signatures')
-      .select('signer_id, signed_at')
-      .eq('voucher_id', transaction.voucherNo)
-      .eq('voucher_type', voucherType);
+    const { data: sigs } = await voucherSignaturesApi.get(transaction.voucherNo, voucherType);
 
     if (sigs && sigs.length > 0) {
-      const signerIds = sigs.map(s => s.signer_id);
-      const { fetchDirectoryProfiles, fetchDirectoryUserRoles } = await import('@/lib/directory');
-      const [profiles, roles] = await Promise.all([
-        fetchDirectoryProfiles(),
-        fetchDirectoryUserRoles(),
+      const signerIds = sigs.map((s: any) => s.signer_id);
+      const [profilesRes, rolesRes] = await Promise.all([
+        profilesApi.getAll(),
+        rolesApi.getAll(),
       ]);
 
-      const infos: SignatureInfo[] = sigs.map(s => {
-        const profile = profiles.find(p => p.user_id === s.signer_id);
-        const role = roles.find(r => r.user_id === s.signer_id);
+      const infos: SignatureInfo[] = sigs.map((s: any) => {
+        const profile = profilesRes.data?.find((p: any) => p.user_id === s.signer_id);
+        const role = rolesRes.data?.find((r: any) => r.user_id === s.signer_id);
         return {
           signer_id: s.signer_id,
           signer_name: profile?.full_name || 'Unknown',
@@ -82,31 +80,31 @@ export function VoucherSignatureStatus({ transaction, voucherType }: VoucherSign
 
   if (signatures.length === 0) {
     return (
-      <Badge variant="outline" className="text-xs text-muted-foreground">
-        Chưa ký
+      <Badge variant="secondary" className="text-[10px] font-bold text-muted-foreground/50 bg-muted/50 uppercase tracking-widest px-2 py-0">
+        Chờ ký
       </Badge>
     );
   }
 
   return (
-    <div className="flex flex-wrap gap-1">
+    <div className="flex flex-wrap gap-1.5">
       {signatures.map(sig => (
         <Badge
           key={sig.signer_id}
           variant="outline"
-          className="text-xs bg-green-50 text-green-700 border-green-200"
+          className="text-[10px] font-bold bg-emerald-50/50 text-emerald-700 border-emerald-200/50 px-2 py-0.5 shadow-sm group/sig transition-all hover:bg-emerald-100/50"
           title={`${sig.signer_name} - ${sig.role === 'lanh_dao' ? 'Lãnh đạo' : sig.role === 'ke_toan' ? 'Kế toán' : sig.role === 'phu_trach_dia_ban' ? 'Phụ trách địa bàn' : sig.role === 'nguoi_lap' ? 'Người lập' : sig.role}`}
         >
-          <ShieldCheck className="w-3 h-3 mr-1" />
-          {sig.signer_name}
+          <ShieldCheck className="w-2.5 h-2.5 mr-1 text-emerald-600" />
+          <span className="truncate max-w-[80px]">{sig.signer_name}</span>
         </Badge>
       ))}
     </div>
   );
 }
 
-export function SignVoucherButton({ transaction, voucherType, onSigned }: VoucherSignatureProps & { onSigned?: () => void }) {
-  const { user, hasRole } = useAuth();
+export function SignVoucherButton({ transaction, voucherType, onSigned, hideSignAction }: VoucherSignatureProps & { onSigned?: () => void }) {
+  const { user, profile, hasRole } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [signing, setSigning] = useState(false);
   const [alreadySigned, setAlreadySigned] = useState(false);
@@ -114,12 +112,9 @@ export function SignVoucherButton({ transaction, voucherType, onSigned }: Vouche
   const [verifying, setVerifying] = useState(false);
   const [signPassword, setSignPassword] = useState('');
 
-  // Signing permissions depend on voucher type:
-  // - tham-hoi: only lanh_dao or phu_trach_dia_ban can sign (not ke_toan)
-  // - thu/chi/de-nghi: only lanh_dao and ke_toan can sign (not phu_trach_dia_ban)
   const canSign = voucherType === 'tham-hoi'
     ? (hasRole('lanh_dao') || hasRole('phu_trach_dia_ban'))
-    : (hasRole('lanh_dao') || hasRole('ke_toan'));
+    : (voucherType === 'de-nghi' ? (hasRole('lanh_dao') || hasRole('ke_toan')) : hasRole('lanh_dao'));
 
   useEffect(() => {
     if (user && canSign) {
@@ -129,58 +124,28 @@ export function SignVoucherButton({ transaction, voucherType, onSigned }: Vouche
 
   const checkIfSigned = async () => {
     if (!user) return;
-    const { data } = await supabase
-      .from('voucher_signatures')
-      .select('id')
-      .eq('voucher_id', transaction.voucherNo)
-      .eq('voucher_type', voucherType)
-      .eq('signer_id', user.id)
-      .maybeSingle();
-    setAlreadySigned(!!data);
+    const { data } = await voucherSignaturesApi.get(transaction.voucherNo, voucherType, user.id);
+    setAlreadySigned(!!(data && data.length > 0));
   };
 
   const handleSign = async () => {
     if (!user) return;
     setSigning(true);
 
-    try {
-      if (!signPassword) {
-        toast.error('Vui lòng nhập mật khẩu ký số');
-        setSigning(false);
-        return;
-      }
-      const privateKey = await getServerPrivateKey(user.id, signPassword);
-      if (!privateKey) {
-        toast.error('Không thể giải mã khóa bí mật. Kiểm tra lại mật khẩu ký.');
-        setSigning(false);
-        return;
-      }
+    const signerName = profile?.full_name || 'Người ký';
+    const res = await signVoucherWith3StepNotify({
+      voucherId: transaction.voucherNo,
+      voucherType,
+      voucherData: transaction as any,
+      signerId: user.id,
+      signerName,
+      signPassword,
+      creatorId: transaction.createdBy,
+    });
 
-      const dataString = buildVoucherDataString(transaction);
-      const dataHash = await hashData(dataString);
-      const signature = await signData(privateKey, dataString);
-
-      const { error } = await supabase.from('voucher_signatures').insert({
-        voucher_id: transaction.voucherNo,
-        voucher_type: voucherType,
-        signer_id: user.id,
-        signature,
-        data_hash: dataHash,
-      });
-
-      if (error) {
-        if (error.code === '23505') {
-          toast.info('Bạn đã ký phiếu này rồi');
-        } else {
-          throw error;
-        }
-      } else {
-        toast.success(`Đã ký duyệt phiếu ${transaction.voucherNo}`);
-        setAlreadySigned(true);
-        onSigned?.();
-      }
-    } catch (err: any) {
-      toast.error(`Lỗi ký: ${err.message}`);
+    if (res.ok) {
+      setAlreadySigned(true);
+      onSigned?.();
     }
     setSigning(false);
     setDialogOpen(false);
@@ -190,11 +155,7 @@ export function SignVoucherButton({ transaction, voucherType, onSigned }: Vouche
   const handleVerify = async () => {
     setVerifying(true);
     try {
-      const { data: sigs } = await supabase
-        .from('voucher_signatures')
-        .select('signer_id, signature, data_hash')
-        .eq('voucher_id', transaction.voucherNo)
-        .eq('voucher_type', voucherType);
+      const { data: sigs } = await voucherSignaturesApi.get(transaction.voucherNo, voucherType);
 
       if (!sigs || sigs.length === 0) {
         setVerifyResult({ valid: false, details: 'Chưa có chữ ký nào trên phiếu này' });
@@ -206,16 +167,12 @@ export function SignVoucherButton({ transaction, voucherType, onSigned }: Vouche
       const results: string[] = [];
       let allValid = true;
 
-      const { fetchDirectoryProfiles, fetchSignaturePublicKeys } = await import('@/lib/directory');
-      const [allKeys, allProfiles] = await Promise.all([
-        fetchSignaturePublicKeys(true),
-        fetchDirectoryProfiles(true),
-      ]);
-
       for (const sig of sigs) {
-        const sigKey = allKeys.find(k => k.user_id === sig.signer_id && k.is_active);
-        const profile = allProfiles.find(p => p.user_id === sig.signer_id);
+        const { data: sigKeys } = await digitalSignaturesApi.get(sig.signer_id, true);
+        const { data: profile } = await profilesApi.getByUserId(sig.signer_id);
+
         const name = profile?.full_name || sig.signer_id;
+        const sigKey = sigKeys && sigKeys.length > 0 ? sigKeys[0] : null;
 
         if (!sigKey) {
           results.push(`❌ ${name}: Không tìm thấy khóa công khai`);
@@ -239,39 +196,43 @@ export function SignVoucherButton({ transaction, voucherType, onSigned }: Vouche
     setVerifying(false);
   };
 
-  if (!canSign && !user) return null;
+  if (!user) return null;
+
+  const showSign = canSign && !hideSignAction;
 
   return (
     <>
-      <div className="flex gap-1">
-        {canSign && (
+      <div className="flex gap-1.5 justify-center">
+        {showSign && (
           <Button
             size="sm"
             variant={alreadySigned ? 'secondary' : 'default'}
-            className={`h-7 text-xs ${alreadySigned ? '' : 'bg-emerald-600 hover:bg-emerald-700'}`}
+            className={cn(
+              "h-8 px-3 text-[11px] font-black uppercase tracking-wider rounded-lg transition-all shadow-sm",
+              alreadySigned ? "bg-emerald-50 text-emerald-600 border border-emerald-100 hover:bg-emerald-100" : "bg-primary hover:bg-primary/90 shadow-primary/20"
+            )}
             onClick={(e) => { e.stopPropagation(); setDialogOpen(true); }}
             disabled={alreadySigned}
           >
             {alreadySigned ? (
-              <><CheckCircle2 className="w-3 h-3 mr-1" /> Đã ký</>
+              <><CheckCircle2 className="w-3.5 h-3.5 mr-1.5" /> ĐÃ KÝ</>
             ) : (
-              <><PenTool className="w-3 h-3 mr-1" /> Ký duyệt</>
+              <><PenTool className="w-3.5 h-3.5 mr-1.5" /> KÝ DUYỆT</>
             )}
           </Button>
         )}
         <Button
           size="sm"
           variant="outline"
-          className="h-7 text-xs"
+          className="h-8 px-3 text-[11px] font-black uppercase tracking-wider rounded-lg border-2 border-muted/50 hover:bg-muted transition-all"
           onClick={(e) => { e.stopPropagation(); handleVerify(); }}
           disabled={verifying}
         >
-          {verifying ? <Loader2 className="w-3 h-3 animate-spin" /> : <ShieldCheck className="w-3 h-3 mr-1" />}
-          Xác thực
+          {verifying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ShieldCheck className="w-3.5 h-3.5 mr-1.5 text-muted-foreground" />}
+          XÁC THỰC
         </Button>
       </div>
 
-      {/* Verify result tooltip */}
       {verifyResult && (
         <Dialog open={!!verifyResult} onOpenChange={() => setVerifyResult(null)}>
           <DialogContent className="max-w-md">
@@ -294,7 +255,6 @@ export function SignVoucherButton({ transaction, voucherType, onSigned }: Vouche
         </Dialog>
       )}
 
-      {/* Sign confirmation dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
