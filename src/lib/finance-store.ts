@@ -28,7 +28,16 @@ const defaultSettings: OrgSettings = {
 
 export function getActiveYear(): number {
   const stored = localStorage.getItem(ACTIVE_YEAR_KEY);
-  if (stored) return parseInt(stored, 10);
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored);
+      const asNumber = Number(parsed);
+      if (Number.isFinite(asNumber)) return asNumber;
+    } catch {
+      const asNumber = Number(stored);
+      if (Number.isFinite(asNumber)) return asNumber;
+    }
+  }
   return new Date().getFullYear();
 }
 
@@ -134,23 +143,6 @@ export function closeYear(year: number): { success: boolean; message: string } {
 /** Reopen a closed year for viewing */
 export function reopenYear(year: number) {
   setActiveYear(year);
-}
-
-/** Admin only: unlock a previously closed year so chứng từ can be edited again */
-export function unlockYear(year: number): { success: boolean; message: string } {
-  const yearDataList = getYearDataList();
-  const idx = yearDataList.findIndex(y => y.year === year);
-  if (idx < 0) {
-    return { success: false, message: `Không tìm thấy dữ liệu năm ${year}.` };
-  }
-  if (!yearDataList[idx].isClosed) {
-    return { success: false, message: `Năm ${year} hiện đang mở.` };
-  }
-  yearDataList[idx].isClosed = false;
-  yearDataList[idx].closedAt = undefined;
-  saveYearDataList(yearDataList);
-  setActiveYear(year);
-  return { success: true, message: `Đã mở lại sổ năm ${year}. Bạn có thể chỉnh sửa chứng từ.` };
 }
 
 /** Check if a year is closed (read-only) */
