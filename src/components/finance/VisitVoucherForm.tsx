@@ -10,6 +10,7 @@ import { Heart, Printer, Save, X, DollarSign, User, CalendarDays, Hash, History,
 import { toast } from 'sonner';
 import { PrintVisitVoucher } from './PrintVisitVoucher';
 import { TransactionList } from './TransactionList';
+import { VoucherAttachments } from './VoucherAttachments';
 import { useAuth } from '@/hooks/useAuth';
 import { submitVoucherForSigning, notifySigners, getVoucherLabel } from '@/lib/notification-utils';
 
@@ -247,6 +248,8 @@ export function VisitVoucherForm({ onSaved, refreshKey }: VisitVoucherFormProps)
               </form>
             </CardContent>
           </Card>
+
+          <VoucherAttachments voucherType="tham-hoi" voucherId={form.voucherNo} />
         </div>
 
         {/* RIGHT: recent vouchers */}

@@ -10,6 +10,7 @@ import { FileText, Printer, Save, X, DollarSign, User, CreditCard, CalendarDays,
 import { toast } from 'sonner';
 import { PrintPaymentRequest } from './PrintPaymentRequest';
 import { TransactionList } from './TransactionList';
+import { VoucherAttachments } from './VoucherAttachments';
 import { useAuth } from '@/hooks/useAuth';
 import { submitVoucherForSigning, notifySigners, getVoucherLabel } from '@/lib/notification-utils';
 
@@ -299,6 +300,8 @@ export function PaymentRequestForm({ onSaved, refreshKey }: PaymentRequestFormPr
               </form>
             </CardContent>
           </Card>
+
+          <VoucherAttachments voucherType="de-nghi" voucherId={form.voucherNo} />
         </div>
 
         {/* RIGHT: recent requests */}

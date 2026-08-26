@@ -11,6 +11,8 @@ import { AccountCodeInput } from './AccountCodeInput';
 import { toast } from 'sonner';
 import { PrintVoucher } from './PrintVoucher';
 import { VoucherList } from './VoucherList';
+import { VoucherAttachments } from './VoucherAttachments';
+
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { submitVoucherForSigning, notifySigners, getVoucherLabel } from '@/lib/notification-utils';
@@ -326,7 +328,10 @@ export function VoucherForm({ type, onSaved, refreshKey }: VoucherFormProps) {
               </form>
             </CardContent>
           </Card>
+
+          <VoucherAttachments voucherType={type} voucherId={form.voucherNo} />
         </div>
+
 
         {/* RIGHT: recent vouchers */}
         <aside className="xl:sticky xl:top-4">
