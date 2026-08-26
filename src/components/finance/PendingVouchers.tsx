@@ -9,13 +9,21 @@ import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { supabase } from '@/integrations/supabase/client';
+import { pendingVouchersApi, profilesApi } from '@/lib/api-client';
 import { useAuth } from '@/hooks/useAuth';
-import { signData, hashData, getServerPrivateKey } from '@/lib/crypto-utils';
-import { getVoucherLabel, notifyLeaderAfterFirstSign, notifyCreatorToprint, getSigningStep } from '@/lib/notification-utils';
+import { getVoucherLabel, getSigningStep } from '@/lib/notification-utils';
+import { signVoucherWith3StepNotify } from '@/lib/signing-flow';
 import { toast } from 'sonner';
 import { PenTool, CheckCircle2, ClipboardList, Loader2, CalendarIcon, X } from 'lucide-react';
 import { format, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
+
+function normalizeForMatch(value: string): string {
+  return (value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
 
 interface PendingVoucher {
   id: string;
@@ -49,11 +57,8 @@ export function PendingVouchers() {
     setLoading(true);
     if (!user) { setLoading(false); return; }
 
-    const { data: pendingData } = await supabase
-      .from('pending_vouchers')
-      .select('*')
-      .in('status', ['pending', 'partially_signed'])
-      .order('created_at', { ascending: false });
+    const { data: allPending } = await pendingVouchersApi.getAll();
+    const pendingData = (allPending || []).filter((v: any) => ['pending', 'partially_signed'].includes(v.status));
 
     if (!pendingData) { setLoading(false); return; }
 
@@ -63,26 +68,37 @@ export function PendingVouchers() {
     const filteredVouchers: PendingVoucher[] = [];
 
     for (const v of pendingData) {
-      const step = await getSigningStep(v.voucher_id, v.voucher_type);
+      const step = await getSigningStep(v.voucher_id, v.voucher_type, v.voucher_data);
 
       if (step === 'fully_signed') continue;
 
       if (step === 'pending') {
-        // Bước 1: chờ kế toán (thu/chi/đề nghị) hoặc phụ trách địa bàn (thăm hỏi)
-        if (v.voucher_type === 'tham-hoi') {
-          if (!isAreaRep) continue; // chỉ phụ trách địa bàn thấy
-          // Chỉ phụ trách của đúng địa bàn mới thấy phiếu thăm hỏi
-          // Lọc theo địa bàn: assigned_area có thể chứa nhiều địa bàn (comma-separated)
-          const voucherUnionGroup = (v.voucher_data as any)?.department || (v.voucher_data as any)?.unionGroupName || '';
-          if (userAssignedArea && voucherUnionGroup) {
-            const userAreas = userAssignedArea.split(',').map(a => a.trim());
-            const matched = userAreas.some(area => voucherUnionGroup.includes(area));
-            if (!matched) continue;
+        // Bước 1: 
+        // - tham-hoi: phụ trách địa bàn hoặc lãnh đạo (nếu không địa bàn)
+        // - thu/chi: lãnh đạo ký duy nhất (không còn bước kế toán)
+        // - de-nghi: kế toán ký trước
+        if (v.voucher_type === 'thu' || v.voucher_type === 'chi') {
+          if (!isLeader) continue;
+        } else if (v.voucher_type === 'tham-hoi') {
+          const mode = (v.voucher_data as any)?.thamHoiSigningMode;
+          if (mode === 'leader_only') {
+            if (!isLeader) continue;
+          } else {
+            if (!isAreaRep) continue;
+            const voucherUnionGroup = (v.voucher_data as any)?.department || (v.voucher_data as any)?.unionGroupName || '';
+            if (userAssignedArea && voucherUnionGroup) {
+              const userAreas = userAssignedArea.split(',').map(a => a.trim());
+              const gnorm = normalizeForMatch(voucherUnionGroup);
+              const matched = userAreas.some(area => {
+                const an = normalizeForMatch(area);
+                return an && gnorm && (gnorm.includes(an) || an.includes(gnorm));
+              });
+              if (!matched) continue;
+            }
           }
         } else {
-          if (!isAccountant) continue; // chỉ kế toán thấy
+          if (!isAccountant) continue;
         }
-        // Lãnh đạo chưa thấy ở bước này (trừ khi cũng có role kế toán/phụ trách)
       } else if (step === 'first_signed') {
         // Bước 2: chờ lãnh đạo ký
         if (!isLeader) continue; // chỉ lãnh đạo thấy
@@ -91,12 +107,12 @@ export function PendingVouchers() {
       filteredVouchers.push({ ...v, voucher_data: v.voucher_data as any, signing_step: step });
     }
 
-    // Get creator names via directory RPC
+    // Get creator names
     const creatorIds = [...new Set(filteredVouchers.map(v => v.created_by))];
     if (creatorIds.length > 0) {
-      const { fetchDirectoryProfiles } = await import('@/lib/directory');
-      const profiles = await fetchDirectoryProfiles();
-      const profileMap = new Map(profiles.map(p => [p.user_id, p.full_name]));
+      const { data: profiles } = await profilesApi.getAll();
+
+      const profileMap = new Map(profiles?.map(p => [p.user_id, p.full_name]) || []);
       filteredVouchers.forEach(v => {
         v.creator_name = profileMap.get(v.created_by) || 'N/A';
       });
@@ -104,7 +120,7 @@ export function PendingVouchers() {
 
     setVouchers(filteredVouchers);
     setLoading(false);
-  }, [user, isLeader, isAccountant, isAreaRep]);
+  }, [user, profile?.assigned_area, isLeader, isAccountant, isAreaRep]);
 
   useEffect(() => { fetchPending(); }, [fetchPending]);
 
@@ -126,73 +142,33 @@ export function PendingVouchers() {
     setSigning(true);
 
     try {
-      const privateKey = await getServerPrivateKey(user.id, password);
-      if (!privateKey) {
-        toast.error('Không thể giải mã khóa bí mật. Kiểm tra lại mật khẩu ký.');
+      const signerName = profile?.full_name || 'Người ký';
+      const stepBeforeSign = selectedVoucher.signing_step;
+      // Use shared signing flow to guarantee the 3-step notification chain
+      const res = await signVoucherWith3StepNotify({
+        voucherId: selectedVoucher.voucher_id,
+        voucherType: selectedVoucher.voucher_type as any,
+        voucherData: selectedVoucher.voucher_data,
+        signerId: user.id,
+        signerName,
+        signPassword: password,
+        stepBeforeSign: stepBeforeSign as any,
+        pendingVoucherId: selectedVoucher.id,
+        creatorId: selectedVoucher.created_by,
+      });
+
+      if (!res.ok) {
+        // Shared flow already shows proper toast; keep state clean.
         setSigning(false);
         return;
-      }
-
-      const dataStr = JSON.stringify({
-        voucherNo: selectedVoucher.voucher_data.voucherNo || selectedVoucher.voucher_id,
-        date: selectedVoucher.voucher_data.date,
-        amount: selectedVoucher.voucher_data.amount,
-        description: selectedVoucher.voucher_data.description,
-        personName: selectedVoucher.voucher_data.personName,
-        type: selectedVoucher.voucher_type,
-      });
-
-      const dataHash = await hashData(dataStr);
-      const signature = await signData(privateKey, dataStr);
-
-      const { error } = await supabase.from('voucher_signatures').insert({
-        voucher_id: selectedVoucher.voucher_id,
-        voucher_type: selectedVoucher.voucher_type,
-        signer_id: user.id,
-        signature,
-        data_hash: dataHash,
-      });
-
-      if (error) throw error;
-
-      const signerName = profile?.full_name || 'Người ký';
-      const voucherLabel = getVoucherLabel(selectedVoucher.voucher_type);
-
-      if (isLeader && selectedVoucher.signing_step === 'first_signed') {
-        // Lãnh đạo ký xong (bước 2) → hoàn tất, thông báo người lập in chứng từ
-        await supabase.from('pending_vouchers')
-          .update({ status: 'signed', signed_at: new Date().toISOString() })
-          .eq('id', selectedVoucher.id);
-
-        await notifyCreatorToprint(
-          selectedVoucher.created_by,
-          selectedVoucher.voucher_id,
-          selectedVoucher.voucher_type,
-          voucherLabel,
-          signerName
-        );
-        toast.success('Đã ký duyệt hoàn tất. Người lập đã được thông báo để in chứng từ.');
-      } else {
-        // Kế toán / phụ trách ký xong (bước 1) → chuyển sang partially_signed, thông báo lãnh đạo
-        await supabase.from('pending_vouchers')
-          .update({ status: 'partially_signed' })
-          .eq('id', selectedVoucher.id);
-
-        await notifyLeaderAfterFirstSign(
-          selectedVoucher.voucher_id,
-          selectedVoucher.voucher_type,
-          voucherLabel,
-          signerName
-        );
-        toast.success('Đã ký duyệt. Lãnh đạo đã được thông báo để ký tiếp.');
       }
 
       setSignDialogOpen(false);
       setPassword('');
       setSelectedVoucher(null);
       fetchPending();
-    } catch (err: any) {
-      toast.error('Lỗi khi ký: ' + (err.message || 'Unknown'));
+    } catch {
+      // Shared flow already toasts; avoid duplicates.
     }
     setSigning(false);
   };
