@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { getTransactions, getOrgSettings, deleteTransaction } from '@/lib/finance-store';
 import { Transaction } from '@/types/finance';
 import { ClipboardList, Printer, Download, Pencil, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -11,15 +10,12 @@ import { PrintDetailLedger } from './PrintDetailLedger';
 import { EditTransactionDialog } from './EditTransactionDialog';
 import { exportDetailLedgerExcel } from '@/lib/export-utils';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
+import { pendingVouchersApi } from '@/lib/api-client';
+import { useOrgSettings, useTransactions } from '@/hooks/useFinanceData';
+import { useEffect, useCallback } from 'react';
 
-function formatCurrency(n: number) {
-  return n.toLocaleString('vi-VN');
-}
-
-function formatDate(d: string) {
-  return new Date(d).toLocaleDateString('vi-VN');
-}
+function formatCurrency(n: number) { return n.toLocaleString('vi-VN'); }
+function formatDate(d: string) { return new Date(d).toLocaleDateString('vi-VN'); }
 
 const typeLabels: Record<string, { label: string; class: string }> = {
   thu: { label: 'PT', class: 'bg-green-100 text-green-700' },
@@ -34,46 +30,59 @@ interface DetailLedgerProps {
 }
 
 export function DetailLedger({ refreshKey, onSaved }: DetailLedgerProps) {
-  const settings = getOrgSettings();
-  const [localRefresh, setLocalRefresh] = useState(0);
+  const { settings } = useOrgSettings();
+  const { transactions, deleteTransaction, refetch } = useTransactions(undefined, undefined, refreshKey);
   const [editTx, setEditTx] = useState<Transaction | null>(null);
-  const [deleteTxId, setDeleteTxId] = useState<string | null>(null);
-  const { user } = useAuth();
+  const [deleteTx, setDeleteTx] = useState<Transaction | null>(null);
+  const { user, hasRole, isAdmin } = useAuth();
   const [approvedIds, setApprovedIds] = useState<Set<string>>(new Set());
 
   const rows = useMemo(() => {
-    return getTransactions().filter(tx => tx.type === 'thu' || tx.type === 'chi').sort((a, b) => a.date.localeCompare(b.date));
-  }, [refreshKey, localRefresh]);
+    return transactions.filter(tx => tx.type === 'thu' || tx.type === 'chi').sort((a, b) => a.date.localeCompare(b.date));
+  }, [transactions]);
 
-  // Fetch approved voucher IDs
-  useMemo(() => {
-    supabase
-      .from('pending_vouchers')
-      .select('voucher_id')
-      .in('voucher_type', ['thu', 'chi'])
-      .in('status', ['signed', 'printed'])
-      .then(({ data }) => {
-        if (data) setApprovedIds(new Set(data.map(v => v.voucher_id)));
-      });
-  }, [refreshKey, localRefresh]);
+  const fetchApprovedIds = useCallback(async () => {
+    const { data } = await pendingVouchersApi.getAll();
+    if (data) {
+      const approved = data.filter((v: any) =>
+        ['thu', 'chi'].includes(v.voucher_type) && ['signed', 'printed'].includes(v.status)
+      );
+      setApprovedIds(new Set(approved.map((v: any) => v.voucher_id)));
+    }
+  }, []);
 
-  const canModify = (tx: Transaction) => {
+  useEffect(() => { fetchApprovedIds(); }, [fetchApprovedIds, refreshKey]);
+
+  const canEdit = (tx: Transaction) => {
     if (approvedIds.has(tx.voucherNo)) return false;
     if (!user) return false;
-    if (!tx.createdBy) return true;
+    if (isAdmin) return true;
+    if (!tx.createdBy) return false;
+    return tx.createdBy === user.id;
+  };
+
+  const canDelete = (tx: Transaction) => {
+    if (!user) return false;
+    if (approvedIds.has(tx.voucherNo)) return isAdmin;
+    if (isAdmin) return true;
+    if (!tx.createdBy) return false;
     return tx.createdBy === user.id;
   };
 
   const handleRefresh = () => {
-    setLocalRefresh(k => k + 1);
+    refetch();
     onSaved?.();
   };
 
-  const handleDelete = () => {
-    if (!deleteTxId) return;
-    deleteTransaction(deleteTxId);
+  const handleDelete = async () => {
+    if (!deleteTx) return;
+    if (!canDelete(deleteTx)) {
+      toast.error('Bạn không có quyền xóa chứng từ này');
+      return;
+    }
+    await deleteTransaction(deleteTx.id);
     toast.success('Đã xóa chứng từ');
-    setDeleteTxId(null);
+    setDeleteTx(null);
     handleRefresh();
   };
 
@@ -82,7 +91,7 @@ export function DetailLedger({ refreshKey, onSaved }: DetailLedgerProps) {
       <Card className="border-border shadow-lg no-print">
         <CardHeader className="bg-primary/5 border-b border-border text-center relative">
           <div className="absolute right-4 top-4 flex gap-2">
-            <Button variant="outline" size="sm" onClick={exportDetailLedgerExcel}>
+            <Button variant="outline" size="sm" onClick={async () => await exportDetailLedgerExcel()}>
               <Download className="h-4 w-4 mr-1" /> Excel
             </Button>
             <Button variant="outline" size="sm" onClick={() => window.print()}>
@@ -97,7 +106,7 @@ export function DetailLedger({ refreshKey, onSaved }: DetailLedgerProps) {
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                 <TableRow className="bg-muted/50">
+                <TableRow className="bg-muted/50">
                   <TableHead className="text-center w-28">Ngày CT</TableHead>
                   <TableHead className="text-center w-20">Số CT</TableHead>
                   <TableHead className="text-right w-28">Số tiền</TableHead>
@@ -122,24 +131,24 @@ export function DetailLedger({ refreshKey, onSaved }: DetailLedgerProps) {
                       <TableCell className="text-center">
                         <span className={`inline-block px-2 py-0.5 rounded text-xs font-semibold ${t.class}`}>{t.label}</span>
                       </TableCell>
-                      <TableCell className="text-center font-mono text-sm">
-                        {row.type === 'thu' ? '111' : (row.accountCode || '')}
-                      </TableCell>
-                      <TableCell className="text-center font-mono text-sm">
-                        {row.type === 'chi' ? '111' : (row.accountCode || '')}
-                      </TableCell>
+                      <TableCell className="text-center font-mono text-sm">{row.type === 'thu' ? '111' : (row.accountCode || '')}</TableCell>
+                      <TableCell className="text-center font-mono text-sm">{row.type === 'chi' ? '111' : (row.accountCode || '')}</TableCell>
                       <TableCell className="text-sm">{row.personName}</TableCell>
                       <TableCell className="text-sm truncate max-w-[10rem]">{row.department}</TableCell>
                       <TableCell>
-                        {canModify(row) ? (
-                        <div className="flex items-center justify-center gap-1">
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditTx(row)}>
-                            <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDeleteTxId(row.id)}>
-                            <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                          </Button>
-                        </div>
+                        {canEdit(row) || canDelete(row) ? (
+                          <div className="flex items-center justify-center gap-1">
+                            {canEdit(row) && (
+                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditTx(row)}>
+                                <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                              </Button>
+                            )}
+                            {canDelete(row) && (
+                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDeleteTx(row)}>
+                                <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                              </Button>
+                            )}
+                          </div>
                         ) : null}
                       </TableCell>
                     </TableRow>
@@ -147,9 +156,7 @@ export function DetailLedger({ refreshKey, onSaved }: DetailLedgerProps) {
                 })}
                 {rows.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={10} className="text-center text-muted-foreground py-10">
-                      Chưa có dữ liệu
-                    </TableCell>
+                    <TableCell colSpan={10} className="text-center text-muted-foreground py-10">Chưa có dữ liệu</TableCell>
                   </TableRow>
                 )}
               </TableBody>
@@ -158,21 +165,20 @@ export function DetailLedger({ refreshKey, onSaved }: DetailLedgerProps) {
         </CardContent>
       </Card>
 
-      <EditTransactionDialog
-        transaction={editTx}
-        open={!!editTx}
-        onOpenChange={open => { if (!open) setEditTx(null); }}
-        onSaved={handleRefresh}
-      />
+      <EditTransactionDialog transaction={editTx} open={!!editTx} onOpenChange={open => { if (!open) setEditTx(null); }} onSaved={handleRefresh} />
 
-      <AlertDialog open={!!deleteTxId} onOpenChange={open => { if (!open) setDeleteTxId(null); }}>
+      <AlertDialog open={!!deleteTx} onOpenChange={open => { if (!open) setDeleteTx(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
-            <AlertDialogDescription>Bạn có chắc chắn muốn xóa chứng từ này? Thao tác này không thể hoàn tác.</AlertDialogDescription>
+            <AlertDialogDescription>
+              {approvedIds.has(deleteTx?.voucherNo || '')
+                ? 'Chứng từ đã duyệt chỉ Admin mới được xóa. Thao tác này không thể hoàn tác.'
+                : 'Bạn có chắc chắn muốn xóa chứng từ này? Thao tác này không thể hoàn tác.'}
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogCancel onClick={() => setDeleteTx(null)}>Hủy</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Xóa</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
