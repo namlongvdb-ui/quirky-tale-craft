@@ -105,6 +105,13 @@ All colors MUST be HSL.
     font-family: "Times New Roman", Times, serif;
   }
 
+  button,
+  input,
+  select,
+  textarea {
+    font-family: inherit;
+  }
+
   h1,
   h2,
   h3,
