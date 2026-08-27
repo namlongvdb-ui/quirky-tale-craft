@@ -53,7 +53,7 @@ export function PrintTrackingReport() {
             <th style={{ ...headerStyle, width: '40px' }}>STT</th>
             <th style={{ ...headerStyle, width: '100px' }}>Ngày lập</th>
             <th style={{ ...headerStyle, width: '90px' }}>Số hiệu</th>
-            <th style={{ headerStyle }}>Lý do / Nội dung chi tiết</th>
+            <th style={headerStyle}>Lý do / Nội dung chi tiết</th>
             <th style={{ ...headerStyle, width: '180px' }}>Đoàn viên được thăm hỏi</th>
             <th style={{ ...headerStyle, width: '180px' }}>Tổ công đoàn</th>
             <th style={{ ...headerStyle, width: '120px' }}>Số tiền (đ)</th>
