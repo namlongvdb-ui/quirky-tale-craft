@@ -1,6 +1,6 @@
 import { toast } from 'sonner';
 import { notificationsApi, pendingVouchersApi, voucherSignaturesApi } from '@/lib/api-client';
-import { getPrivateKey, getServerPrivateKey, hashData, signData } from '@/lib/crypto-utils';
+import { getServerPrivateKey, hashData, signData } from '@/lib/crypto-utils';
 import { getSigningStep, getUserIdsByRole, getVoucherLabel, notifyCreatorToprint, notifyFirstSigners, notifyLeaderAfterFirstSign, submitVoucherForSigning } from '@/lib/notification-utils';
 import { emitNotificationsRefresh } from '@/lib/notification-events';
 
@@ -118,8 +118,8 @@ export async function signVoucherWith3StepNotify(params: {
       }
     }
 
-    let privateKey = getPrivateKey(params.signerId);
-    if (!privateKey) {
+    let privateKey: string | null = null;
+    {
       if (!params.signPassword) {
         toast.error('Vui lòng nhập mật khẩu ký số', { id: toastId });
         return { ok: false as const, reason: 'missing_password' as const };
