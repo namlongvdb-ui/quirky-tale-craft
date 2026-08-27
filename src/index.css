@@ -102,14 +102,21 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
-    font-family: "Be Vietnam Pro", system-ui, sans-serif;
+    font-family: "Times New Roman", Times, serif;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font-family: inherit;
   }
 
   h1,
   h2,
   h3,
   .font-display {
-    font-family: "Playfair Display", "Be Vietnam Pro", serif;
+    font-family: "Times New Roman", Times, serif;
   }
 }
 

@@ -71,8 +71,8 @@ export default {
         soft: "var(--shadow-soft)",
       },
       fontFamily: {
-        display: ['"Playfair Display"', 'serif'],
-        sans: ['"Be Vietnam Pro"', 'system-ui', 'sans-serif'],
+        display: ['"Times New Roman"', 'Times', 'serif'],
+        sans: ['"Times New Roman"', 'Times', 'serif'],
       },
       keyframes: {
         marquee: {
