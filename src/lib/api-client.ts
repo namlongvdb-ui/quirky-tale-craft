@@ -28,7 +28,7 @@ function ok<T>(data: T): ApiResult<T> {
   return { data, error: null };
 }
 
-function fail<T>(err: unknown): ApiResult<T> {
+function fail(err: unknown): ApiResult<any> {
   const message = err instanceof Error ? err.message : String(err || 'Lỗi không xác định');
   const code = (err as { code?: string })?.code;
   return { data: null, error: { message, code } };

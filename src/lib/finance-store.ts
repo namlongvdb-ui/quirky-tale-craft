@@ -140,6 +140,18 @@ export function closeYear(year: number): { success: boolean; message: string } {
   return { success: true, message: `Đã khóa sổ năm ${year}. Số dư cuối kỳ ${closingBalance.toLocaleString('vi-VN')} đ được kết chuyển sang năm ${nextYear}.` };
 }
 
+/** Mở lại sổ năm đã khóa (chỉ admin) — bỏ trạng thái khóa */
+export function unlockYear(year: number): { success: boolean; message: string } {
+  const list = getYearDataList();
+  const idx = list.findIndex(y => y.year === year);
+  if (idx < 0) return { success: false, message: `Không tìm thấy dữ liệu năm ${year}.` };
+  if (!list[idx].isClosed) return { success: false, message: `Năm ${year} chưa khóa sổ.` };
+  list[idx] = { ...list[idx], isClosed: false, closedAt: undefined };
+  saveYearDataList(list);
+  setActiveYear(year);
+  return { success: true, message: `Đã mở lại sổ năm ${year}.` };
+}
+
 /** Reopen a closed year for viewing */
 export function reopenYear(year: number) {
   setActiveYear(year);
