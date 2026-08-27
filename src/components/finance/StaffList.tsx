@@ -327,7 +327,7 @@ export function StaffList() {
           <Button variant="outline" size="sm" onClick={openHistory}>
             <History className="h-4 w-4 mr-1" /> Lịch sử điều chuyển
           </Button>
-          <Button variant="outline" size="sm" onClick={() => { exportStaffListExcel(); toast.success('Đã xuất file Excel'); }}>
+          <Button variant="outline" size="sm" onClick={() => { exportStaffListExcel(list, settings, orgSettings); toast.success('Đã xuất file Excel'); }}>
             <FileSpreadsheet className="h-4 w-4 mr-1" /> Xuất Excel
           </Button>
           <Button variant="outline" size="sm" onClick={() => handlePrint('staff')}>

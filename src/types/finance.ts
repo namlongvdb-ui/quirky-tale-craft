@@ -19,6 +19,7 @@ export interface Transaction {
   bankAccount?: string;
   bankAccountName?: string;
   bankName?: string;
+  linkedThamHoiVoucherNo?: string;
   times?: string;
 }
 
@@ -35,7 +36,7 @@ export interface DetailLedgerEntry extends Transaction {
   runningBalance: number;
 }
 
-export type ViewType = 'dashboard' | 'phieu-thu' | 'phieu-chi' | 'phieu-tham-hoi' | 'de-nghi-thanh-toan' | 'so-quy' | 'so-chi-tiet' | 'danh-sach-can-bo' | 'khoa-so' | 'cai-dat' | 'quan-tri' | 'doi-mat-khau' | 'lich-su-ky' | 'cho-ky' | 'da-duyet';
+export type ViewType = 'dashboard' | 'phieu-thu' | 'phieu-chi' | 'phieu-tham-hoi' | 'de-nghi-thanh-toan' | 'so-quy' | 'so-chi-tiet' | 'danh-sach-can-bo' | 'khoa-so' | 'cai-dat' | 'quan-tri' | 'doi-mat-khau' | 'lich-su-ky' | 'cho-ky' | 'da-duyet' | 'bao-cao-de-nghi-tham-hoi';
 
 export interface YearData {
   year: number;

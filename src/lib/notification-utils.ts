@@ -38,7 +38,7 @@ export async function getAreaRepsByArea(areaName: string): Promise<string[]> {
 
 export async function getSignerUserIds(): Promise<string[]> {
   const { data } = await digitalSignaturesApi.get(undefined, true);
-  return data ? [...new Set(data.map((d: any) => d.user_id))] : [];
+  return data ? [...new Set((data as any[]).map((d: any) => String(d.user_id)))] : [];
 }
 
 // Step 1: Thăm hỏi → phụ trách đúng địa bàn, hoặc lãnh đạo nếu không có địa bàn; không gửi kế toán.

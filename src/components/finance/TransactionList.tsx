@@ -29,6 +29,7 @@ interface TransactionListProps {
   onChanged?: () => void;
   refreshKey?: number;
   onSelectForEdit?: (tx: Transaction) => void;
+  containerClassName?: string;
 }
 
 function formatCurrency(n: number) {

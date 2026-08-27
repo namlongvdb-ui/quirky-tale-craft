@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { numberToVietnameseWords } from '@/lib/finance-store';
 import { Transaction } from '@/types/finance';
-import { Heart, Printer, Save, X, DollarSign, User, Users, AlertTriangle, Sparkles, ChevronRight, History, Search, Badge } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Heart, Printer, Save, X, DollarSign, User, Users, AlertTriangle, Sparkles, ChevronRight, History, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { PrintVisitVoucher } from './PrintVisitVoucher';
 import { TransactionList } from './TransactionList';
@@ -479,14 +480,12 @@ export function VisitVoucherForm({ onSaved, refreshKey }: VisitVoucherFormProps)
           <VoucherAttachments
             voucherId={form.voucherNo}
             voucherType="tham-hoi"
-            category="giay_ra_vien"
-            title="Hồ sơ đính kèm: Giấy ra viện / Giấy tờ liên quan"
           />
         </div>
 
         {/* Nội dung in ấn */}
         <div className="print-only hidden">
-          <PrintVisitVoucher data={form} />
+          <PrintVisitVoucher data={{ ...form, amount: Number(form.amount) || 0 }} />
         </div>
       </div>
 
