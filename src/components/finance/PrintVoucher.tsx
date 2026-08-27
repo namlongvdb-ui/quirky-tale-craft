@@ -65,13 +65,6 @@ export function PrintVoucher({ type, data, signatures = [] }: PrintVoucherProps)
         <p style={{ fontSize: '13px', margin: '2px 0' }}>Số CT:........{/* {data.voucherNo}*/}</p>
       </div>
 
-      {/* Nợ / Có */}
-      <div style={{ textAlign: 'right', fontSize: '13px', marginBottom: '12px' }}>
-        <p style={{ margin: '2px 0' }}>Quyển số:........</p>
-        <p style={{ margin: '2px 0' }}>Nợ: {type === 'thu' ? '111' : (data.accountCode || '.................')}</p>
-        <p style={{ margin: '2px 0' }}>Có: {type === 'chi' ? '111' : (data.accountCode || '.................')}</p>
-      </div>
-
       {/* Content */}
       <div style={{ lineHeight: '1.7', fontSize: '14px' }}>
         <p style={labelStyle}>{personLabel}: <span style={valueStyle}>{data.personName || '...................................'}</span></p>
