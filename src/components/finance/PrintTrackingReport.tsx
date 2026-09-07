@@ -100,7 +100,7 @@ export function PrintTrackingReport() {
         </div>
         <div style={{ textAlign: 'center', width: '30%' }}>
           <p style={{ fontWeight: 'bold', margin: '0' }}>LÃNH ĐẠO ĐƠN VỊ</p>
-          <p style={{ fontStyle: 'italic', fontSize: '11px', margin: '4px 0 60px 0' }}>(Ký, họ tên)</p>
+          <p style={{ fontStyle: 'italic', fontSize: '11px', margin: '4px 0 60px 0' }}>(Ký, họ tên, đóng dấu)</p>
           <p style={{ fontWeight: 'bold', margin: '0' }}>{orgSettings.leaderName}</p>
         </div>
       </div>
