@@ -7,6 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { getVoucherLabel } from '@/lib/notification-utils';
+import { onNotificationsRefresh } from '@/lib/notification-events';
 import { format } from 'date-fns';
 
 interface Notification {
@@ -133,7 +134,13 @@ export function NotificationBell({ onNavigate }: NotificationBellProps) {
       )
       .subscribe();
 
+    // Làm mới ngay khi luồng ký phát sự kiện (không phụ thuộc realtime)
+    const offRefresh = onNotificationsRefresh(() => {
+      fetchNotifications();
+    });
+
     return () => {
+      offRefresh();
       supabase.removeChannel(channel);
       supabase.removeChannel(voucherChannel);
       supabase.removeChannel(sigChannel);
