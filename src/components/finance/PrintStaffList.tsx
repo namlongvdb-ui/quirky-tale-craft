@@ -153,7 +153,7 @@ export function PrintStaffList() {
         </div>
         <div style={{ textAlign: 'center', width: '45%' }}>
           <p style={{ fontWeight: 'bold' }}>LÃNH ĐẠO ĐƠN VỊ</p>
-          <p style={{ fontStyle: 'italic', fontSize: '10px' }}>(Ký, họ tên)</p>
+          <p style={{ fontStyle: 'italic', fontSize: '10px' }}>(Ký, họ tên,đóng dấu)</p>
           <div style={{ height: '50px' }}></div>
           <p style={{ fontWeight: 'bold' }}>{orgSettings.leaderName}</p>
         </div>
