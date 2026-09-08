@@ -494,55 +494,45 @@ export function StaffList() {
                   <TableHead className="text-center">GT</TableHead>
                   <TableHead className="text-right">HS lương</TableHead>
                   <TableHead className="text-right">HS CV</TableHead>
-                  <TableHead className="text-right">Lương vùng</TableHead>
-                  <TableHead className="text-right">Lương BH</TableHead>
-                  <TableHead className="text-right">Đoàn phí CĐ</TableHead>
                   <TableHead className="w-16 text-center">Thao tác</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredList.length === 0 && (
-                  <TableRow><TableCell colSpan={12} className="text-center py-8 text-muted-foreground">Chưa có đoàn viên nào. Nhấn "Thêm đoàn viên" để bắt đầu.</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">Chưa có đoàn viên nào. Nhấn "Thêm đoàn viên" để bắt đầu.</TableCell></TableRow>
                 )}
-                {filteredList.map((s, i) => {
-                  const lbh = calculateInsuranceSalary(s.salaryCoefficient, s.positionCoefficient, s.regionalSalary, settings.baseSalary);
-                  const fee = calculateUnionFee(lbh, settings.baseSalary);
-                  return (
-                    <TableRow key={s.id}>
-                      <TableCell className="text-center text-muted-foreground">{i + 1}</TableCell>
-                      <TableCell className="font-medium">{s.fullName}</TableCell>
-                      <TableCell className="text-sm">{s.department}</TableCell>
-                      <TableCell className="text-sm">{s.position}</TableCell>
-                      <TableCell className="text-center text-sm">{s.birthDate ? new Date(s.birthDate).toLocaleDateString('vi-VN') : ''}</TableCell>
-                      <TableCell className="text-center text-sm">{s.gender === 'nam' ? 'Nam' : 'Nữ'}</TableCell>
-                      <TableCell className="text-right font-mono">{s.salaryCoefficient.toFixed(2)}</TableCell>
-                      <TableCell className="text-right font-mono">{s.positionCoefficient.toFixed(2)}</TableCell>
-                      <TableCell className="text-right font-mono">{fmt(s.regionalSalary)}</TableCell>
-                      <TableCell className="text-right font-semibold">{fmt(Math.round(lbh))}</TableCell>
-                      <TableCell className="text-right font-semibold text-primary">{fmt(Math.round(fee))}</TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-7 w-7">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleEdit(s)}>
-                              <Pencil className="h-4 w-4 mr-2" /> Sửa thông tin
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleOpenTransfer(s, 'move')}>
-                              <ArrowRightLeft className="h-4 w-4 mr-2" /> Điều chuyển tổ
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleOpenTransfer(s, 'out')} className="text-destructive focus:text-destructive">
-                              <LogOut className="h-4 w-4 mr-2" /> Chuyển khỏi ngành
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
+                {filteredList.map((s, i) => (
+                  <TableRow key={s.id}>
+                    <TableCell className="text-center text-muted-foreground">{i + 1}</TableCell>
+                    <TableCell className="font-medium">{s.fullName}</TableCell>
+                    <TableCell className="text-sm">{s.department}</TableCell>
+                    <TableCell className="text-sm">{s.position}</TableCell>
+                    <TableCell className="text-center text-sm">{s.birthDate ? new Date(s.birthDate).toLocaleDateString('vi-VN') : ''}</TableCell>
+                    <TableCell className="text-center text-sm">{s.gender === 'nam' ? 'Nam' : 'Nữ'}</TableCell>
+                    <TableCell className="text-right font-mono">{s.salaryCoefficient.toFixed(2)}</TableCell>
+                    <TableCell className="text-right font-mono">{s.positionCoefficient.toFixed(2)}</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-7 w-7">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleEdit(s)}>
+                            <Pencil className="h-4 w-4 mr-2" /> Sửa thông tin
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleOpenTransfer(s, 'move')}>
+                            <ArrowRightLeft className="h-4 w-4 mr-2" /> Điều chuyển tổ
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleOpenTransfer(s, 'out')} className="text-destructive focus:text-destructive">
+                            <LogOut className="h-4 w-4 mr-2" /> Chuyển khỏi ngành
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </div>
