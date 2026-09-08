@@ -39,15 +39,9 @@ function groupAndSort(list: StaffMember[]) {
 
 export function PrintStaffList() {
   const orgSettings = getOrgSettings();
-  const settings = getStaffSettings();
   const list = getStaffList();
   const grouped = useMemo(() => groupAndSort(list), [list]);
   const deptNames = Object.keys(grouped).sort();
-
-  const totalFee = list.reduce((sum, s) => {
-    const lbh = calculateInsuranceSalary(s.salaryCoefficient, s.positionCoefficient, s.regionalSalary, settings.baseSalary);
-    return sum + calculateUnionFee(lbh, settings.baseSalary);
-  }, 0);
 
   let stt = 0;
   const cellStyle: React.CSSProperties = { border: '1px solid #000', padding: '3px 5px' };
@@ -75,14 +69,10 @@ export function PrintStaffList() {
         <p style={{ fontSize: '11px', fontStyle: 'italic', marginTop: '2px' }}>(Sắp xếp theo Tổ Công đoàn)</p>
       </div>
 
-      <div style={{ marginBottom: '8px', fontSize: '11px' }}>
-        <span>Lương cơ sở: <strong>{fmt(settings.baseSalary)} đ</strong></span>
-      </div>
-
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
         <thead>
           <tr>
-            {['STT', 'Họ và tên', 'Chức vụ', 'Ngày sinh', 'GT', 'HS lương', 'HS CV', 'Lương vùng', 'Lương BH', 'Đoàn phí CĐ'].map((h, i) => (
+            {['STT', 'Họ và tên', 'Chức vụ', 'Ngày sinh', 'GT', 'HS lương', 'HS CV'].map((h, i) => (
               <th key={i} style={{ ...centerCell, fontWeight: 'bold', backgroundColor: '#f0f0f0', fontSize: '11px' }}>{h}</th>
             ))}
           </tr>
@@ -90,21 +80,15 @@ export function PrintStaffList() {
         <tbody>
           {deptNames.map(dept => {
             const members = grouped[dept];
-            const deptFee = members.reduce((sum, s) => {
-              const lbh = calculateInsuranceSalary(s.salaryCoefficient, s.positionCoefficient, s.regionalSalary, settings.baseSalary);
-              return sum + calculateUnionFee(lbh, settings.baseSalary);
-            }, 0);
             return (
               <Fragment key={dept}>
                 <tr>
-                  <td colSpan={10} style={{ ...cellStyle, fontWeight: 'bold', backgroundColor: '#e8e8e8', fontSize: '11px' }}>
+                  <td colSpan={7} style={{ ...cellStyle, fontWeight: 'bold', backgroundColor: '#e8e8e8', fontSize: '11px' }}>
                     {dept}
                   </td>
                 </tr>
                 {members.map(s => {
                   stt++;
-                  const lbh = calculateInsuranceSalary(s.salaryCoefficient, s.positionCoefficient, s.regionalSalary, settings.baseSalary);
-                  const fee = calculateUnionFee(lbh, settings.baseSalary);
                   return (
                     <tr key={s.id}>
                       <td style={centerCell}>{stt}</td>
@@ -114,32 +98,21 @@ export function PrintStaffList() {
                       <td style={centerCell}>{s.gender === 'nam' ? 'Nam' : 'Nữ'}</td>
                       <td style={rightCell}>{s.salaryCoefficient.toFixed(2)}</td>
                       <td style={rightCell}>{s.positionCoefficient.toFixed(2)}</td>
-                      <td style={rightCell}>{fmt(s.regionalSalary)}</td>
-                      <td style={rightCell}>{fmt(Math.round(lbh))}</td>
-                      <td style={rightCell}>{fmt(Math.round(fee))}</td>
                     </tr>
                   );
                 })}
                 <tr>
-                  <td colSpan={8} style={{ ...rightCell, fontWeight: 'bold', fontStyle: 'italic', fontSize: '10px' }}>
+                  <td colSpan={7} style={{ ...rightCell, fontWeight: 'bold', fontStyle: 'italic', fontSize: '10px' }}>
                     Cộng {dept}: {members.length} đoàn viên
                   </td>
-                  <td style={{ ...rightCell, fontWeight: 'bold' }}>
-                    {fmt(Math.round(members.reduce((s, m) => s + calculateInsuranceSalary(m.salaryCoefficient, m.positionCoefficient, m.regionalSalary, settings.baseSalary), 0)))}
-                  </td>
-                  <td style={{ ...rightCell, fontWeight: 'bold' }}>{fmt(Math.round(deptFee))}</td>
                 </tr>
               </Fragment>
             );
           })}
           <tr>
-            <td colSpan={8} style={{ ...rightCell, fontWeight: 'bold', fontSize: '12px' }}>
+            <td colSpan={7} style={{ ...rightCell, fontWeight: 'bold', fontSize: '12px' }}>
               TỔNG CỘNG: {list.length} đoàn viên
             </td>
-            <td style={{ ...rightCell, fontWeight: 'bold', fontSize: '12px' }}>
-              {fmt(Math.round(list.reduce((s, m) => s + calculateInsuranceSalary(m.salaryCoefficient, m.positionCoefficient, m.regionalSalary, settings.baseSalary), 0)))}
-            </td>
-            <td style={{ ...rightCell, fontWeight: 'bold', fontSize: '12px' }}>{fmt(Math.round(totalFee))}</td>
           </tr>
         </tbody>
       </table>
