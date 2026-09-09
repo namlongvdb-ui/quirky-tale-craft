@@ -189,7 +189,7 @@ export function PrintMonthlyFee({ month, year }: PrintMonthlyFeeProps) {
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
         <thead>
           <tr>
-            {['STT', 'Họ và tên', 'Chức vụ', 'HS lương', 'HS CV', 'Lương vùng', 'Lương BH', 'Đoàn phí (0,5%)', 'Ký nhận'].map((h, i) => (
+            {['STT', 'Họ và tên', 'Chức vụ', 'HS lương', 'HS CV', 'Lương vùng', 'Lương BH', 'Đoàn phí (0,5%)', 'Ký nộp'].map((h, i) => (
               <th key={i} style={{ ...centerCell, fontWeight: 'bold', backgroundColor: '#f0f0f0', fontSize: '11px' }}>{h}</th>
             ))}
           </tr>
