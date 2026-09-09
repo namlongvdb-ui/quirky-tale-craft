@@ -23,7 +23,7 @@ const menuItems: { view: ViewType; label: string; icon: React.ElementType; admin
   { view: 'phieu-chi', label: 'Phiếu Chi', icon: FileOutput },
   { view: 'so-quy', label: 'Sổ Quỹ', icon: BookOpen },
   { view: 'so-chi-tiet', label: 'Sổ Chi Tiết', icon: ClipboardList },
-  { view: 'danh-sach-can-bo', label: 'Danh Sách Đoàn Viên', icon: Users },
+  { view: 'danh-sach-can-bo', label: 'Quản lý Đoàn Viên', icon: Users },
   { view: 'khoa-so', label: 'Khóa Sổ & Kết Chuyển', icon: BookOpenCheck },
   { view: 'cai-dat', label: 'Cài đặt', icon: Settings },
   { view: 'doi-mat-khau', label: 'Đổi mật khẩu', icon: KeyRound },
