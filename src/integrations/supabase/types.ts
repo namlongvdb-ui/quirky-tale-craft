@@ -247,6 +247,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_set_digital_signature: {
+        Args: {
+          _encrypted_private_key: string
+          _public_key: string
+          _user_id: string
+        }
+        Returns: string
+      }
       create_workflow_notification: {
         Args: {
           p_message: string
