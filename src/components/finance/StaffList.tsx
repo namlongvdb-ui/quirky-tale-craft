@@ -238,7 +238,7 @@ export function StaffList() {
       return;
     }
 
-    const title = mode === 'fee' ? 'Danh sách thu đoàn phí' : 'Danh sách đoàn viên';
+    const title = mode === 'fee' ? 'Danh sách thu đoàn phí' : 'Quản lý đoàn viên';
 
     printWindow.document.open();
     printWindow.document.write(`
@@ -318,7 +318,7 @@ export function StaffList() {
       {/* Header */}
       <div className="flex items-center justify-between no-print">
         <h2 className="text-2xl font-bold text-primary flex items-center gap-2">
-          <Users className="h-6 w-6" /> Danh sách đoàn viên
+          <Users className="h-6 w-6" /> Quản lý đoàn viên
         </h2>
         <div className="flex gap-2 flex-wrap">
           <Button variant="outline" size="sm" onClick={() => setBulkTransferOpen(true)}>
