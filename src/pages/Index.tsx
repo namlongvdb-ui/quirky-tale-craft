@@ -44,7 +44,7 @@ const Index = () => {
       case 'phieu-chi': return 'Phiếu Chi';
       case 'so-quy': return 'Sổ Quỹ';
       case 'so-chi-tiet': return 'Sổ Chi Tiết';
-      case 'danh-sach-can-bo': return 'Danh Sách Đoàn Viên';
+      case 'danh-sach-can-bo': return 'Quản Lý Đoàn Viên';
       case 'khoa-so': return 'Khóa Sổ & Kết Chuyển';
       case 'cai-dat': return 'Cài đặt';
       case 'doi-mat-khau': return 'Đổi mật khẩu';
