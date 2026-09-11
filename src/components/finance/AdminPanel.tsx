@@ -16,6 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { generateRSAKeyPair, encryptPrivateKey } from '@/lib/crypto-utils';
 import { UserPlus, Key, Shield, Users, RotateCcw, Ban, Trash2, UserCheck, RefreshCw, MapPin } from 'lucide-react';
 import type { Database } from '@/integrations/supabase/types';
+import { fetchSignaturePublicKeys } from '@/lib/directory';
 
 type AppRole = Database['public']['Enums']['app_role'];
 
@@ -78,10 +79,10 @@ export function AdminPanel() {
 
   const fetchUsers = async () => {
     setLoading(true);
-    const [profilesRes, rolesRes, sigsRes] = await Promise.all([
+    const [profilesRes, rolesRes, sigKeys] = await Promise.all([
       supabase.from('profiles').select('user_id, full_name, username, assigned_area'),
       supabase.from('user_roles').select('user_id, role'),
-      supabase.from('digital_signatures').select('user_id').eq('is_active', true),
+      fetchSignaturePublicKeys(true),
     ]);
 
     if (profilesRes.data) {
@@ -103,7 +104,8 @@ export function AdminPanel() {
         if (u) u.roles.push(r.role);
       });
 
-      sigsRes.data?.forEach(s => {
+      sigKeys.forEach(s => {
+        if (!s.is_active) return;
         const u = userMap.get(s.user_id);
         if (u) u.has_signature = true;
       });
