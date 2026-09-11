@@ -16,6 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { generateRSAKeyPair, encryptPrivateKey } from '@/lib/crypto-utils';
 import { UserPlus, Key, Shield, Users, RotateCcw, Ban, Trash2, UserCheck, RefreshCw, MapPin } from 'lucide-react';
 import type { Database } from '@/integrations/supabase/types';
+import { fetchSignaturePublicKeys } from '@/lib/directory';
 
 type AppRole = Database['public']['Enums']['app_role'];
 
