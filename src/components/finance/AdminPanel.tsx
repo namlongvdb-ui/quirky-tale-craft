@@ -219,17 +219,10 @@ export function AdminPanel() {
       // Encrypt private key with the provided password
       const encryptedPrivateKey = await encryptPrivateKey(privateKey, signaturePassword);
 
-      // Remove existing keys for this user first
-      await supabase.from('digital_signatures')
-        .delete()
-        .eq('user_id', signatureTarget.user_id);
-
-      const { error } = await supabase.from('digital_signatures').insert({
-        user_id: signatureTarget.user_id,
-        public_key: publicKey,
-        created_by: user!.id,
-        is_active: true,
-        encrypted_private_key: encryptedPrivateKey,
+      const { error } = await supabase.rpc('admin_set_digital_signature', {
+        _user_id: signatureTarget.user_id,
+        _public_key: publicKey,
+        _encrypted_private_key: encryptedPrivateKey,
       });
 
       if (error) throw error;
