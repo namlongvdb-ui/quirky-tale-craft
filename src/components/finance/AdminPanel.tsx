@@ -104,7 +104,8 @@ export function AdminPanel() {
         if (u) u.roles.push(r.role);
       });
 
-      sigsRes.data?.forEach(s => {
+      sigKeys.forEach(s => {
+        if (!s.is_active) return;
         const u = userMap.get(s.user_id);
         if (u) u.has_signature = true;
       });
