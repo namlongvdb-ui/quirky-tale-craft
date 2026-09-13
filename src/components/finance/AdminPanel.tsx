@@ -250,9 +250,12 @@ export function AdminPanel() {
     if (!areaTarget) return;
     setSavingAreas(true);
     try {
-      await supabase.from('profiles')
+      const { data, error } = await supabase.from('profiles')
         .update({ assigned_area: editAreas.length > 0 ? editAreas.join(',') : null })
-        .eq('user_id', areaTarget.user_id);
+        .eq('user_id', areaTarget.user_id)
+        .select('user_id');
+      if (error) throw error;
+      if (!data || data.length === 0) throw new Error('Không lưu được địa bàn (không có quyền cập nhật).');
       toast({ title: 'Thành công', description: `Đã cập nhật địa bàn cho ${areaTarget.full_name}` });
       setAreaDialogOpen(false);
       setAreaTarget(null);
