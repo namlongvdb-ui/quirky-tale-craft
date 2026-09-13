@@ -1,4 +1,5 @@
 import { StaffMember, StaffSettings, TransferRecord } from '@/types/finance';
+import { queueCloudSave } from '@/lib/cloud-sync';
 
 const STAFF_KEY = 'union-finance-staff';
 const STAFF_SETTINGS_KEY = 'union-finance-staff-settings';
