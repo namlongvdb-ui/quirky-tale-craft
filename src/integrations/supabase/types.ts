@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_data: {
+        Row: {
+          created_at: string
+          data: Json
+          id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          data: Json
+          id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       digital_signatures: {
         Row: {
           created_at: string
