@@ -239,6 +239,7 @@ export function getTransactionsForYear(year: number): Transaction[] {
     // Save each year's transactions
     for (const [y, txs] of Object.entries(yearMap)) {
       localStorage.setItem(getStorageKeyForYear(parseInt(y)), JSON.stringify(txs));
+      queueCloudSave(getStorageKeyForYear(parseInt(y)), txs);
     }
     // Remove old key
     localStorage.removeItem(STORAGE_KEY);
@@ -251,6 +252,7 @@ export function getTransactionsForYear(year: number): Transaction[] {
 export function saveTransactions(transactions: Transaction[]) {
   const activeYear = getActiveYear();
   localStorage.setItem(getStorageKeyForYear(activeYear), JSON.stringify(transactions));
+  queueCloudSave(getStorageKeyForYear(activeYear), transactions);
 }
 
 export function addTransaction(tx: Omit<Transaction, 'id' | 'createdAt'>): Transaction {
