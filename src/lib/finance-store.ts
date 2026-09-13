@@ -1,4 +1,5 @@
 import { Transaction, OrgSettings, YearData } from '@/types/finance';
+import { queueCloudSave } from '@/lib/cloud-sync';
 
 const STORAGE_KEY = 'union-finance-transactions';
 const BALANCE_KEY = 'union-finance-opening-balance';
