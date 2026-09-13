@@ -185,6 +185,7 @@ export function getOrgSettings(): OrgSettings {
 
 export function saveOrgSettings(settings: OrgSettings) {
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  queueCloudSave(SETTINGS_KEY, settings);
   // Also update year data opening balance for active year if not closed
   const activeYear = getActiveYear();
   const yearDataList = getYearDataList();
@@ -203,6 +204,7 @@ export function getOpeningBalance(): number {
 
 export function setOpeningBalance(balance: number) {
   localStorage.setItem(BALANCE_KEY, JSON.stringify(balance));
+  queueCloudSave(BALANCE_KEY, balance);
 }
 
 // ======================== TRANSACTIONS ========================
