@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { queueCloudSave } from '@/lib/cloud-sync';
 import { Transaction, OrgSettings, YearData } from '@/types/finance';
 import {
   getActiveYear,
@@ -38,6 +39,7 @@ const YEAR_DATA_KEY = 'union-finance-year-data';
 
 function writeYearDataList(list: YearData[]) {
   localStorage.setItem(YEAR_DATA_KEY, JSON.stringify(list));
+  queueCloudSave(YEAR_DATA_KEY, list);
 }
 
 // ==================== TRANSACTIONS (lưu cục bộ theo năm) ====================

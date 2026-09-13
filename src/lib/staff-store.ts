@@ -1,4 +1,5 @@
 import { StaffMember, StaffSettings, TransferRecord } from '@/types/finance';
+import { queueCloudSave } from '@/lib/cloud-sync';
 
 const STAFF_KEY = 'union-finance-staff';
 const STAFF_SETTINGS_KEY = 'union-finance-staff-settings';
@@ -15,6 +16,7 @@ export function getStaffSettings(): StaffSettings {
 
 export function saveStaffSettings(settings: StaffSettings) {
   localStorage.setItem(STAFF_SETTINGS_KEY, JSON.stringify(settings));
+  queueCloudSave(STAFF_SETTINGS_KEY, settings);
 }
 
 export function getStaffList(): StaffMember[] {
@@ -24,6 +26,7 @@ export function getStaffList(): StaffMember[] {
 
 export function saveStaffList(list: StaffMember[]) {
   localStorage.setItem(STAFF_KEY, JSON.stringify(list));
+  queueCloudSave(STAFF_KEY, list);
 }
 
 export function addStaff(staff: Omit<StaffMember, 'id'>): StaffMember {
@@ -43,6 +46,11 @@ export function deleteStaff(id: string) {
   saveStaffList(getStaffList().filter(s => s.id !== id));
 }
 
+function saveTransferHistory(history: TransferRecord[]) {
+  localStorage.setItem(TRANSFER_HISTORY_KEY, JSON.stringify(history));
+  queueCloudSave(TRANSFER_HISTORY_KEY, history);
+}
+
 export function getTransferHistory(): TransferRecord[] {
   const stored = localStorage.getItem(TRANSFER_HISTORY_KEY);
   return stored ? JSON.parse(stored) : [];
@@ -52,7 +60,7 @@ export function addTransferRecord(record: Omit<TransferRecord, 'id'>): TransferR
   const history = getTransferHistory();
   const newRecord: TransferRecord = { ...record, id: crypto.randomUUID() };
   history.unshift(newRecord);
-  localStorage.setItem(TRANSFER_HISTORY_KEY, JSON.stringify(history));
+  saveTransferHistory(history);
   return newRecord;
 }
 

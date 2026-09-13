@@ -1,4 +1,5 @@
 import { Transaction, OrgSettings, YearData } from '@/types/finance';
+import { queueCloudSave } from '@/lib/cloud-sync';
 
 const STORAGE_KEY = 'union-finance-transactions';
 const BALANCE_KEY = 'union-finance-opening-balance';
@@ -43,6 +44,7 @@ export function getActiveYear(): number {
 
 export function setActiveYear(year: number) {
   localStorage.setItem(ACTIVE_YEAR_KEY, JSON.stringify(year));
+  queueCloudSave(ACTIVE_YEAR_KEY, year);
 }
 
 export function getYearDataList(): YearData[] {
@@ -62,6 +64,7 @@ export function getYearDataList(): YearData[] {
 
 function saveYearDataList(data: YearData[]) {
   localStorage.setItem(YEAR_DATA_KEY, JSON.stringify(data));
+  queueCloudSave(YEAR_DATA_KEY, data);
 }
 
 export function getYearData(year: number): YearData | undefined {
@@ -182,6 +185,7 @@ export function getOrgSettings(): OrgSettings {
 
 export function saveOrgSettings(settings: OrgSettings) {
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  queueCloudSave(SETTINGS_KEY, settings);
   // Also update year data opening balance for active year if not closed
   const activeYear = getActiveYear();
   const yearDataList = getYearDataList();
@@ -200,6 +204,7 @@ export function getOpeningBalance(): number {
 
 export function setOpeningBalance(balance: number) {
   localStorage.setItem(BALANCE_KEY, JSON.stringify(balance));
+  queueCloudSave(BALANCE_KEY, balance);
 }
 
 // ======================== TRANSACTIONS ========================
@@ -234,6 +239,7 @@ export function getTransactionsForYear(year: number): Transaction[] {
     // Save each year's transactions
     for (const [y, txs] of Object.entries(yearMap)) {
       localStorage.setItem(getStorageKeyForYear(parseInt(y)), JSON.stringify(txs));
+      queueCloudSave(getStorageKeyForYear(parseInt(y)), txs);
     }
     // Remove old key
     localStorage.removeItem(STORAGE_KEY);
@@ -246,6 +252,7 @@ export function getTransactionsForYear(year: number): Transaction[] {
 export function saveTransactions(transactions: Transaction[]) {
   const activeYear = getActiveYear();
   localStorage.setItem(getStorageKeyForYear(activeYear), JSON.stringify(transactions));
+  queueCloudSave(getStorageKeyForYear(activeYear), transactions);
 }
 
 export function addTransaction(tx: Omit<Transaction, 'id' | 'createdAt'>): Transaction {
