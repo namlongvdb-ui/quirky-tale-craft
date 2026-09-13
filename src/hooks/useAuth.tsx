@@ -3,6 +3,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
 import { purgeLegacyPrivateKeys } from '@/lib/crypto-utils';
+import { runInitialCloudSync, startCloudRefreshLoop, resetCloudSyncState } from '@/lib/cloud-sync';
 
 // Remove any legacy plaintext private keys from previous app versions on load.
 purgeLegacyPrivateKeys();
@@ -52,7 +53,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         if (session?.user) {
           // Use setTimeout to avoid Supabase deadlock
-          setTimeout(() => fetchUserData(session.user.id), 0);
+          setTimeout(() => {
+            fetchUserData(session.user.id);
+            runInitialCloudSync().then(startCloudRefreshLoop);
+          }, 0);
         } else {
           setRoles([]);
           setProfile(null);
@@ -66,6 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchUserData(session.user.id);
+        runInitialCloudSync().then(startCloudRefreshLoop);
       }
       setLoading(false);
     });
@@ -80,6 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    resetCloudSyncState();
     setRoles([]);
     setProfile(null);
   };
