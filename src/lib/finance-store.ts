@@ -44,6 +44,7 @@ export function getActiveYear(): number {
 
 export function setActiveYear(year: number) {
   localStorage.setItem(ACTIVE_YEAR_KEY, JSON.stringify(year));
+  queueCloudSave(ACTIVE_YEAR_KEY, year);
 }
 
 export function getYearDataList(): YearData[] {
@@ -63,6 +64,7 @@ export function getYearDataList(): YearData[] {
 
 function saveYearDataList(data: YearData[]) {
   localStorage.setItem(YEAR_DATA_KEY, JSON.stringify(data));
+  queueCloudSave(YEAR_DATA_KEY, data);
 }
 
 export function getYearData(year: number): YearData | undefined {
