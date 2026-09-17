@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { StaffMember, StaffSettings, TransferRecord } from '@/types/finance';
+import { APP_DATA_SYNCED_EVENT } from '@/lib/cloud-sync';
 import {
   getStaffList,
   saveStaffList,
@@ -23,6 +24,13 @@ export function useStaffList(refreshKey?: number) {
   }, []);
 
   useEffect(() => { reload(); }, [reload, refreshKey]);
+
+  // Tải lại khi dữ liệu mới từ kho chung trên đám mây về máy
+  useEffect(() => {
+    const handler = () => { reload(); };
+    window.addEventListener(APP_DATA_SYNCED_EVENT, handler);
+    return () => window.removeEventListener(APP_DATA_SYNCED_EVENT, handler);
+  }, [reload]);
 
   const addStaff = useCallback((staff: Omit<StaffMember, 'id'>) => {
     const created = addStaffToStore(staff);
@@ -58,6 +66,13 @@ export function useStaffSettings(refreshKey?: number) {
 
   useEffect(() => { reload(); }, [reload, refreshKey]);
 
+  // Tải lại khi dữ liệu mới từ kho chung trên đám mây về máy
+  useEffect(() => {
+    const handler = () => { reload(); };
+    window.addEventListener(APP_DATA_SYNCED_EVENT, handler);
+    return () => window.removeEventListener(APP_DATA_SYNCED_EVENT, handler);
+  }, [reload]);
+
   const saveSettings = useCallback((next: StaffSettings) => {
     saveStaffSettings(next);
     reload();
@@ -76,6 +91,13 @@ export function useTransferHistory(refreshKey?: number) {
   }, []);
 
   useEffect(() => { reload(); }, [reload, refreshKey]);
+
+  // Tải lại khi dữ liệu mới từ kho chung trên đám mây về máy
+  useEffect(() => {
+    const handler = () => { reload(); };
+    window.addEventListener(APP_DATA_SYNCED_EVENT, handler);
+    return () => window.removeEventListener(APP_DATA_SYNCED_EVENT, handler);
+  }, [reload]);
 
   const addRecord = useCallback((record: Omit<TransferRecord, 'id'>) => {
     const created = addTransferRecordToStore(record);
