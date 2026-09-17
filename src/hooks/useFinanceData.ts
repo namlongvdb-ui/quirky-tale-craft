@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Transaction, OrgSettings, YearData } from '@/types/finance';
 import { transactionsApi, orgSettingsApi, yearDataApi } from '@/lib/api-client';
 import { saveOrgSettings, saveTransactions } from '@/lib/finance-store';
+import { APP_DATA_SYNCED_EVENT } from '@/lib/cloud-sync';
 import { toast } from 'sonner';
 
 const defaultSettings: OrgSettings = {
@@ -82,6 +83,13 @@ export function useOrgSettings() {
 
   useEffect(() => { fetchSettings(); }, [fetchSettings]);
 
+  // Tải lại khi dữ liệu mới từ kho chung trên đám mây về máy
+  useEffect(() => {
+    const handler = () => { fetchSettings(); };
+    window.addEventListener(APP_DATA_SYNCED_EVENT, handler);
+    return () => window.removeEventListener(APP_DATA_SYNCED_EVENT, handler);
+  }, [fetchSettings]);
+
   const saveSettings = useCallback(async (newSettings: OrgSettings) => {
     const normalized = normalizeSettings(newSettings);
     const { error } = await orgSettingsApi.save(normalized);
@@ -136,6 +144,13 @@ export function useTransactions(year?: number, type?: string, refreshKey?: numbe
   }, [year, type]);
 
   useEffect(() => { fetchTransactions(); }, [fetchTransactions, refreshKey]);
+
+  // Tải lại khi dữ liệu mới từ kho chung trên đám mây về máy
+  useEffect(() => {
+    const handler = () => { fetchTransactions(); };
+    window.addEventListener(APP_DATA_SYNCED_EVENT, handler);
+    return () => window.removeEventListener(APP_DATA_SYNCED_EVENT, handler);
+  }, [fetchTransactions]);
 
   const addTransaction = useCallback(async (tx: Omit<Transaction, 'id' | 'createdAt'>) => {
     const { data, error } = await transactionsApi.create(tx);
@@ -196,6 +211,13 @@ export function useYearData(refreshKey?: number) {
   }, []);
 
   useEffect(() => { fetchYearData(); }, [fetchYearData, refreshKey]);
+
+  // Tải lại khi dữ liệu mới từ kho chung trên đám mây về máy
+  useEffect(() => {
+    const handler = () => { fetchYearData(); };
+    window.addEventListener(APP_DATA_SYNCED_EVENT, handler);
+    return () => window.removeEventListener(APP_DATA_SYNCED_EVENT, handler);
+  }, [fetchYearData]);
 
   const setActiveYear = useCallback((year: number) => {
     localStorage.setItem('union-finance-active-year', JSON.stringify(year));
